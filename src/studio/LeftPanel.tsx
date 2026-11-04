@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { MediaPanel } from './MediaPanel';
+import { AuditPanel, useAudit } from './AuditPanel';
+import { ShieldCheck } from 'lucide-react';
 import { Search, GripVertical, Eye, EyeOff, Lock, Unlock, Copy, Trash2, Plus, FileText, Files, Layers3, Blocks, Palette, ClipboardList, Keyboard } from 'lucide-react';
 import { useStore, useActivePage, type LeftTab, type RightTab } from '../core/store';
 import { CATEGORIES, SECTIONS, SECTION_MAP } from '../core/sections';
@@ -12,11 +14,14 @@ export const DND_MOVE = 'application/x-fw-move';
 
 export function Rail() {
   const { leftTab, rightTab, set } = useStore();
+  const audit = useAudit();
+  const alerts = audit.counts.error + audit.counts.warning;
   const left: { id: LeftTab; icon: JSX; tip: string }[] = [
     { id: 'library', icon: <Blocks size={18} />, tip: 'Biblioteca de seções' },
     { id: 'layers', icon: <Layers3 size={18} />, tip: 'Camadas' },
     { id: 'pages', icon: <Files size={18} />, tip: 'Páginas' },
     { id: 'media', icon: <ImageIcon size={18} />, tip: 'Mídia' },
+    { id: 'audit', icon: <ShieldCheck size={18} />, tip: 'Qualidade' },
   ];
   const right: { id: RightTab; icon: JSX; tip: string }[] = [
     { id: 'theme', icon: <Palette size={18} />, tip: 'Design system' },
@@ -25,7 +30,10 @@ export function Rail() {
   return (
     <nav className="rail" aria-label="Ferramentas">
       {left.map((t) => (
-        <button key={t.id} className={'tip' + (leftTab === t.id ? ' on' : '')} data-tip={t.tip} aria-label={t.tip} onClick={() => set({ leftTab: t.id })}>{t.icon}</button>
+        <button key={t.id} className={'tip' + (leftTab === t.id ? ' on' : '')} data-tip={t.tip} aria-label={t.tip} onClick={() => set({ leftTab: t.id })}>
+          {t.icon}
+          {t.id === 'audit' && alerts > 0 && <span className={'rail-badge' + (audit.counts.error ? ' err' : '')}>{alerts > 9 ? '9+' : alerts}</span>}
+        </button>
       ))}
       <div style={{ width: 24, height: 1, background: 'var(--line-2)', margin: '6px 0' }} />
       {right.map((t) => (
@@ -46,6 +54,7 @@ export function LeftPanel() {
       {tab === 'layers' && <LayersPanel />}
       {tab === 'pages' && <PagesPanel />}
       {tab === 'media' && <MediaPanel />}
+      {tab === 'audit' && <AuditPanel />}
     </aside>
   );
 }

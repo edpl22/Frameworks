@@ -28,6 +28,7 @@ src/
     platform.ts      bridge desktop/web
     assets.ts        biblioteca de mídia (IndexedDB, refs `asset:`, otimização)
     tokensImport.ts  importação de tokens do Figma
+    audit.ts         auditoria de qualidade (a11y, SEO, links, mídia) + correções
   studio/            TopBar, LeftPanel (biblioteca/camadas/páginas), Canvas,
                      Inspector, ThemePanel, BriefPanel, modals, CommandPalette
   landing/           página de marketing
@@ -55,6 +56,5 @@ Seções ocultas são omitidas.
 
 ## Próximos passos sugeridos
 
-- Seções customizadas pelo usuário (blocos HTML livres)
 - Colaboração em tempo real (CRDT / Yjs)
 - Envio direto para o Claude Code via CLI a partir do app desktop

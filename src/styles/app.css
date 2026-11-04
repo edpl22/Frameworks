@@ -421,6 +421,35 @@ button { font: inherit; color: inherit; }
 .fw-media:hover .fw-media-upload, .fw-media-over .fw-media-upload { opacity: 1; }
 .fw-media-over { outline: 3px solid #8b5cf6; outline-offset: -3px; }
 
+/* Quality audit */
+.rail-badge { position: absolute; top: 3px; right: 3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--warn); color: #1a1200; font-size: 9.5px; font-weight: 700; display: grid; place-items: center; line-height: 1; }
+.rail-badge.err { background: var(--err); color: #fff; }
+.audit-score { position: relative; display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--bg-2); margin-bottom: 12px; }
+.audit-score svg { flex: none; transform: rotate(-90deg); }
+.audit-score .track { fill: none; stroke: rgba(255, 255, 255, 0.07); stroke-width: 7; }
+.audit-score .bar { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset .5s ease; }
+.audit-score.ok .bar { stroke: var(--ok); } .audit-score.warn .bar { stroke: var(--warn); } .audit-score.err .bar { stroke: var(--err); }
+.audit-score > b { position: absolute; left: 14px; width: 76px; text-align: center; font-size: 22px; font-weight: 700; font-family: var(--mono); }
+.audit-score-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.audit-counts { display: flex; flex-wrap: wrap; gap: 4px; }
+.audit-count { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line-2); background: transparent; border-radius: 999px; padding: 2px 8px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.audit-count span { font-weight: 400; color: var(--text-3); }
+.audit-count.error { color: var(--err); } .audit-count.warning { color: var(--warn); } .audit-count.info { color: var(--brand-2); }
+.audit-count.on { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.25); }
+.audit-list { display: grid; gap: 6px; }
+.audit-item { display: flex; gap: 10px; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); }
+.audit-item.error { border-left: 3px solid var(--err); } .audit-item.warning { border-left: 3px solid var(--warn); } .audit-item.info { border-left: 3px solid rgba(34, 211, 238, 0.6); }
+.audit-ic { flex: none; margin-top: 1px; }
+.audit-item.error .audit-ic { color: var(--err); } .audit-item.warning .audit-ic { color: var(--warn); } .audit-item.info .audit-ic { color: var(--brand-2); }
+.audit-msg { font-size: 12.5px; line-height: 1.45; }
+.audit-hint { font-size: 11.5px; color: var(--text-3); margin-top: 3px; line-height: 1.45; }
+.audit-actions { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+.audit-cat { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-right: auto; }
+
+/* Custom block spec note (editor only) */
+.fw-spec-note { margin: 28px auto 0; max-width: 720px; padding: 12px 16px; border: 1.5px dashed rgba(139, 92, 246, 0.7); border-radius: 12px; background: rgba(139, 92, 246, 0.08); font: 13px/1.5 var(--font); color: inherit; text-align: left; display: grid; gap: 4px; }
+.fw-spec-note b { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #a78bfa; }
+
 /* Command palette */
 .cmdk-backdrop { position: fixed; inset: 0; z-index: 120; background: rgba(3, 3, 8, 0.6); backdrop-filter: blur(6px); display: flex; justify-content: center; padding-top: 14vh; animation: fadeIn .15s; }
 .cmdk { width: min(640px, calc(100% - 32px)); background: rgba(16, 16, 25, 0.98); border: 1px solid var(--line-2); border-radius: 16px; box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7), 0 0 80px -20px rgba(139, 92, 246, 0.35); overflow: hidden; align-self: flex-start; animation: pop .18s; }

@@ -136,3 +136,18 @@ export function harmonyPalette(seed: string, harmony: Harmony, mode: 'light' | '
 export function randomSeed(): string {
   return hslToHex({ h: Math.random() * 360, s: 60 + Math.random() * 30, l: 50 + Math.random() * 10 });
 }
+
+/**
+ * Nudges `fg` lightness (keeping hue/saturation) until it reaches `target`
+ * contrast against `bg`. Moves away from the background's luminance.
+ */
+export function ensureContrast(fg: string, bg: string, target = 4.5): string {
+  if (contrastRatio(fg, bg) >= target) return normalizeHex(fg);
+  const c = hexToHsl(fg);
+  const dir = luminance(bg) > 0.4 ? -1 : 1;
+  for (let l = c.l; l >= 0 && l <= 100; l += dir) {
+    const next = hslToHex({ ...c, l });
+    if (contrastRatio(next, bg) >= target) return next;
+  }
+  return dir < 0 ? '#000000' : '#ffffff';
+}

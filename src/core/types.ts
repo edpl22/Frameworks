@@ -17,6 +17,7 @@ export type SectionType =
   | 'cta'
   | 'contact'
   | 'newsletter'
+  | 'custom'
   | 'footer';
 
 export type Align = 'left' | 'center' | 'right';

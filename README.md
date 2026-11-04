@@ -56,8 +56,8 @@ Roda no **navegador**, como **app desktop** (macOS, Windows e Linux) e em **Dock
 </td>
 <td width="50%" valign="top">
 
-### 🧩 15 seções, 30+ layouts
-Navbar, Hero, Logos, Recursos (grid, bento, lista), Números, Texto + mídia, Galeria, Depoimentos, Preços, Equipe, FAQ, CTA, Contato, Newsletter e Rodapé.
+### 🧩 16 seções, 30+ layouts
+Navbar, Hero, Logos, Recursos (grid, bento, lista), Números, Texto + mídia, Galeria, Depoimentos, Preços, Equipe, FAQ, CTA, Contato, Newsletter, Rodapé e o **Bloco personalizado**: descreva livremente o que a seção deve fazer (uma calculadora, um mapa, uma linha do tempo…) e o Claude Code constrói a partir da sua descrição.
 
 O inspetor é gerado a partir do schema de cada seção: textos, listas, ícones, imagens, fundo, espaçamento, alinhamento, largura e animação de entrada.
 
@@ -100,6 +100,22 @@ A galeria tem filtros por estilo visual e busca.
 - Várias páginas com campos de SEO
 - Copiar e colar seções
 - Briefing do projeto (objetivo, público, tom de voz e funcionalidades)
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top">
+
+### ✅ Painel de Qualidade
+Auditoria ao vivo com nota de 0 a 100. Verifica:
+- **Acessibilidade:** contraste WCAG, texto alternativo das imagens, um único h1 por página
+- **SEO:** título e meta description
+- **Conteúdo:** títulos vazios, descrição dos blocos personalizados
+- **Links:** rotas duplicadas, links internos quebrados, botões sem destino
+- **Mídia:** placeholders, imagens removidas da biblioteca, imagens pesadas e `http://`
+- **Briefing:** campos em branco
+
+Cada item leva direto à seção com problema. Contraste, SEO e rotas duplicadas se corrigem em um clique. O que restar entra no prompt como **Pendências conhecidas**.
 
 </td>
 </tr>
@@ -180,8 +196,9 @@ O prompt é montado nesta ordem:
 4. Especificação de cada seção, com o texto real
 5. Imagens fornecidas
 6. Requisitos funcionais e de qualidade (SEO, acessibilidade, performance)
-7. Plano de execução
-8. Critérios de aceite
+7. Pendências conhecidas, vindas do painel de Qualidade
+8. Plano de execução
+9. Critérios de aceite
 
 Seções ocultas ficam de fora. Instruções escritas no campo **Instruções para o Claude** de cada seção entram junto.
 
@@ -281,8 +298,8 @@ A imagem é multi-stage: o Node 22 roda testes e build, e o nginx 1.27 serve os 
 
 | Camada | Ferramenta | Cobertura |
 |---|---|---|
-| Unitários | Vitest | 42 testes: cores e contraste, gerador de prompt, exportadores, CSS com escopo, templates, importação do Figma, mídia e store (undo/redo) |
-| End-to-end | Playwright | 10 cenários no navegador: edição inline, drag-and-drop, templates, preview mobile, prompt, Figma, upload de imagens e conteúdo do ZIP |
+| Unitários | Vitest | 52 testes: cores e contraste, gerador de prompt, exportadores, CSS com escopo, templates, importação do Figma, mídia, auditoria de qualidade e store (undo/redo) |
+| End-to-end | Playwright | 12 cenários no navegador: edição inline, drag-and-drop, templates, preview mobile, prompt, Figma, upload de imagens, conteúdo do ZIP, painel de Qualidade e bloco personalizado |
 | Docker | GitHub Actions | Build da imagem, container no ar, `/healthz` e headers de segurança |
 | Desktop | GitHub Actions | Empacotamento com electron-builder e smoke test sob Xvfb |
 
