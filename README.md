@@ -1,5 +1,7 @@
 <div align="center">
 
+[![CI](https://github.com/edpl22/Frameworks/actions/workflows/ci.yml/badge.svg)](https://github.com/edpl22/Frameworks/actions/workflows/ci.yml)
+
 # Frameworks Studio
 
 **Desenhe sites visualmente. Gere um prompt de engenharia pronto para o Claude Code. Exporte tudo.**
