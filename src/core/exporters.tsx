@@ -1,5 +1,4 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import JSZip from 'jszip';
 import type { Page, Project } from './types';
 import { RenderContext } from './render/editable';
 import { SiteSection } from './render/SiteSection';
@@ -166,6 +165,7 @@ export function parseProjectFile(text: string): { project: Project; assetData: R
 }
 
 export async function exportZip(project: Project, promptOptions: PromptOptions = DEFAULT_PROMPT_OPTIONS, blobs: Map<string, Blob> = new Map()): Promise<Blob> {
+  const { default: JSZip } = await import('jszip'); // only needed when exporting
   const zip = new JSZip();
   for (const [id, blob] of blobs) {
     const m = project.assets?.[id];

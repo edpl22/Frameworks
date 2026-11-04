@@ -5,15 +5,9 @@ import type { Device } from '../core/types';
 import { Segmented, mod } from './ui';
 import { isDesktop } from '../core/platform';
 import { openProjectFile, saveProject } from './fileOps';
+import { Logo } from '../ui/Logo';
 
-export function Logo({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <defs><linearGradient id="lg-fw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#c4b5fd" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
-      <path d="M5 4h14v4H9.5v3H17v4H9.5v5H5z" fill="url(#lg-fw)" />
-    </svg>
-  );
-}
+export { Logo } from '../ui/Logo';
 
 export function TopBar() {
   const s = useStore();

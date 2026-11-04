@@ -1,15 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight, Sparkles, MousePointer2, Palette, Layers3, Wand2, Download, Monitor, Container, Command,
   Check, Code2, Zap, ShieldCheck, Gauge, Terminal, Smartphone, Undo2, Braces,
 } from 'lucide-react';
-import { Logo } from '../studio/TopBar';
-import { Github } from '../core/icons';
-import { createDefaultProject, TEMPLATES } from '../core/templates';
-import { THEME_PRESETS } from '../core/theme';
-import { generatePrompt } from '../core/prompt';
-import { renderPageMarkup } from '../core/exporters';
-import { generateSiteCSS } from '../core/siteCss';
+import { Logo, GithubMark as Github } from '../ui/Logo';
+import { CATALOG } from '../core/catalog';
+import type { Demo } from './demo';
 import './landing.css';
 
 function useReveal() {
@@ -64,7 +60,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { n: '01', title: 'Desenhe', text: `Escolha entre ${TEMPLATES.length} templates — SaaS, portfólio, e-commerce, restaurante, evento e mais — ou comece do zero.` },
+  { n: '01', title: 'Desenhe', text: `Escolha entre ${CATALOG.templates} templates — SaaS, portfólio, e-commerce, restaurante, evento e mais — ou comece do zero.` },
   { n: '02', title: 'Refine', text: 'Ajuste tema, tipografia, espaçamentos, animações e conteúdo com controles precisos.' },
   { n: '03', title: 'Gere', text: 'Um clique transforma seu design em um prompt estruturado e otimizado para o Claude Code.' },
   { n: '04', title: 'Construa', text: 'Cole no Claude Code e receba um projeto Next.js, Astro, Nuxt, SvelteKit ou HTML pronto para produção.' },
@@ -73,9 +69,12 @@ const STEPS = [
 export function Landing() {
   useReveal();
   useSpotlight();
-  const demo = useMemo(() => {
-    const p = createDefaultProject();
-    return { prompt: generatePrompt(p, { detail: 'concise', includeContent: false, includeTokens: true, includeAcceptance: false, includeJsonSpec: false, includePlan: false, promptLanguage: 'pt-BR' }).slice(0, 1900), html: renderPageMarkup({ ...p.pages[0], sections: p.pages[0].sections.slice(0, 4) }), css: generateSiteCSS(p.theme, '.lp-demo .fw-site') };
+  // The live demo uses the real engine; it is code-split so the page paints first.
+  const [demo, setDemo] = useState<Demo | null>(null);
+  useEffect(() => {
+    let alive = true;
+    import('./demo').then((m) => { if (alive) setDemo(m.buildDemo()); });
+    return () => { alive = false; };
   }, []);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -138,8 +137,12 @@ export function Landing() {
                   ))}
                 </aside>
                 <div className="lp-shot-canvas lp-demo">
-                  <style>{demo.css}</style>
-                  <div className="lp-shot-site" dangerouslySetInnerHTML={{ __html: demo.html }} />
+                  {demo ? (
+                    <>
+                      <style>{demo.css}</style>
+                      <div className="lp-shot-site" dangerouslySetInnerHTML={{ __html: demo.html }} />
+                    </>
+                  ) : <div className="lp-shot-site lp-shot-skeleton" />}
                   <div className="lp-shot-cursor"><MousePointer2 size={18} fill="#fff" /><span>Você</span></div>
                 </div>
                 <aside className="lp-shot-insp">
@@ -159,7 +162,7 @@ export function Landing() {
 
       {/* LOGOS / STATS */}
       <section className="lp-stats lp-container" data-reveal>
-        {[[String(TEMPLATES.length), 'templates profissionais'], ['15', 'tipos de seção'], [String(THEME_PRESETS.length), 'presets de design'], ['6', 'stacks de destino']].map(([v, l]) => (
+        {[[String(CATALOG.templates), 'templates profissionais'], [String(CATALOG.sections), 'tipos de seção'], [String(CATALOG.presets), 'presets de design'], [String(CATALOG.stacks), 'stacks de destino']].map(([v, l]) => (
           <div key={l}><b>{v}</b><span>{l}</span></div>
         ))}
       </section>
@@ -233,7 +236,7 @@ export function Landing() {
           </div>
           <div className="lp-terminal" data-reveal>
             <div className="lp-term-bar"><i /><i /><i /><span>CLAUDE_PROMPT.md</span></div>
-            <Typewriter text={demo.prompt} />
+            <Typewriter text={demo?.prompt ?? ''} />
           </div>
         </div>
       </section>

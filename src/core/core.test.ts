@@ -30,6 +30,18 @@ describe('color', () => {
   });
 });
 
+describe('catalog', () => {
+  it('marketing numbers match the real registries', async () => {
+    const { CATALOG } = await import('./catalog');
+    const { SECTIONS } = await import('./sections');
+    const { STACKS } = await import('./prompt');
+    expect(CATALOG.templates).toBe(TEMPLATES.length);
+    expect(CATALOG.presets).toBe(THEME_PRESETS.length);
+    expect(CATALOG.sections).toBe(SECTIONS.length);
+    expect(CATALOG.stacks).toBe(Object.keys(STACKS).length);
+  });
+});
+
 describe('factory', () => {
   it('creates every section type with defaults', () => {
     for (const d of SECTIONS) {
