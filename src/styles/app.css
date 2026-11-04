@@ -323,14 +323,34 @@ button { font: inherit; color: inherit; }
 .export-card.featured .ic { margin: 0; width: 52px; height: 52px; }
 
 /* Templates modal */
-.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 22px; }
-.tpl { border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; background: var(--panel-2); cursor: pointer; transition: all .2s; text-align: left; padding: 0; }
+.tpl-layout { display: grid; grid-template-columns: 210px 1fr; height: min(78vh, 820px); }
+.tpl-side { border-right: 1px solid var(--line); padding: 14px 10px; overflow: auto; display: flex; flex-direction: column; gap: 2px; }
+.tpl-cat { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 0; background: transparent; color: var(--text-2); padding: 9px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; text-align: left; }
+.tpl-cat:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+.tpl-cat.on { background: rgba(139, 92, 246, 0.16); color: var(--text); }
+.tpl-cat .n { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+.tpl-main { display: flex; flex-direction: column; min-width: 0; }
+.tpl-toolbar { display: flex; gap: 14px; align-items: center; padding: 14px 22px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tpl-toolbar .chips { flex: 1; }
+.tpl-toolbar .chip { padding: 4px 9px; font-size: 11.5px; }
+.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 20px 22px 28px; overflow: auto; align-content: start; }
+.tpl { border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; background: var(--panel-2); cursor: pointer; transition: border-color .2s, transform .25s, box-shadow .25s; text-align: left; padding: 0; color: inherit; }
 .tpl:hover { border-color: rgba(139, 92, 246, 0.6); transform: translateY(-3px); box-shadow: 0 24px 50px -24px rgba(139, 92, 246, 0.6); }
-.tpl-thumb { height: 220px; overflow: hidden; position: relative; border-bottom: 1px solid var(--line); pointer-events: none; }
-.tpl-thumb-inner { width: 1400px; transform: scale(.27); transform-origin: top left; position: absolute; top: 0; left: 0; }
-.tpl-info { padding: 14px 16px; }
-.tpl-info h3 { margin: 0 0 3px; font-size: 14px; }
-.tpl-info p { margin: 0; font-size: 12px; color: var(--text-3); }
+.tpl-thumb { height: 210px; overflow: hidden; position: relative; border-bottom: 1px solid var(--line); background: #fff; }
+.tpl-thumb-inner { width: 1400px; position: absolute; top: 0; left: 0; transform-origin: top left; transform: translateY(0) scale(var(--tpl-scale, .25)); transition: transform 5s cubic-bezier(.45, 0, .2, 1); pointer-events: none; }
+.tpl:hover .tpl-thumb-inner { transform: translateY(calc(-100% * var(--tpl-scale, .25) + 210px)) scale(var(--tpl-scale, .25)); }
+.tpl-use { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: #8b5cf6; color: #fff; font-size: 11.5px; font-weight: 600; padding: 6px 11px; border-radius: 999px; opacity: 0; transform: translateY(6px); transition: all .2s; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
+.tpl:hover .tpl-use { opacity: 1; transform: none; }
+.tpl-info { padding: 13px 15px 14px; }
+.tpl-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 3px; }
+.tpl-info h3 { margin: 0; font-size: 14px; }
+.tpl-info p { margin: 0; font-size: 12px; color: var(--text-3); line-height: 1.45; }
+.tpl-sw { display: flex; border-radius: 5px; overflow: hidden; border: 1px solid var(--line-2); flex: none; }
+.tpl-sw i { width: 12px; height: 14px; }
+.tpl-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 11px; color: var(--text-3); }
+.tpl-meta .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpl-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.tpl-tags span { font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); color: var(--text-2); border: 1px solid var(--line); }
 
 /* Command palette */
 .cmdk-backdrop { position: fixed; inset: 0; z-index: 120; background: rgba(3, 3, 8, 0.6); backdrop-filter: blur(6px); display: flex; justify-content: center; padding-top: 14vh; animation: fadeIn .15s; }

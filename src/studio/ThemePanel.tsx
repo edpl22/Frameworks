@@ -109,7 +109,7 @@ export function ThemePanel() {
         <div className="group-title">Forma & profundidade</div>
         <Field label="Arredondamento"><Slider value={theme.radius} min={0} max={32} onChange={(v) => setTheme({ radius: v })} format={(v) => `${v}px`} /></Field>
         <Field label="Sombras">
-          <Segmented<Theme['shadow']> value={theme.shadow} onChange={(v) => setTheme({ shadow: v })} options={[{ value: 'none', label: 'Sem' }, { value: 'soft', label: 'Suave' }, { value: 'medium', label: 'Média' }, { value: 'dramatic', label: 'Forte' }]} />
+          <Segmented<Theme['shadow']> value={theme.shadow} onChange={(v) => setTheme({ shadow: v })} options={[{ value: 'none', label: 'Sem' }, { value: 'soft', label: 'Suave' }, { value: 'medium', label: 'Média' }, { value: 'dramatic', label: 'Forte' }, { value: 'hard', label: 'Brutal' }]} />
         </Field>
         <Field label="Botões">
           <Segmented<Theme['buttonStyle']> value={theme.buttonStyle} onChange={(v) => setTheme({ buttonStyle: v })} options={[{ value: 'solid', label: 'Sólido' }, { value: 'pill', label: 'Pílula' }, { value: 'outline', label: 'Contorno' }, { value: 'glass', label: 'Glass' }]} />

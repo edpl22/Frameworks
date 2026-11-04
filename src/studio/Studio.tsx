@@ -103,12 +103,16 @@ function useDesktopBridge() {
 
 function useFonts() {
   useEffect(() => {
-    if (document.getElementById('fw-site-fonts')) return;
-    const link = document.createElement('link');
-    link.id = 'fw-site-fonts';
-    link.rel = 'stylesheet';
-    link.href = googleFontsHref(ALL_FONTS);
-    document.head.appendChild(link);
+    // One stylesheet per family: a single unavailable font can't break the others.
+    for (const f of ALL_FONTS) {
+      const id = 'fw-font-' + f.replace(/\W+/g, '-');
+      if (document.getElementById(id)) continue;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = googleFontsHref([f]);
+      document.head.appendChild(link);
+    }
   }, []);
 }
 

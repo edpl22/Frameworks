@@ -1,5 +1,5 @@
 import type { Theme } from './types';
-import { alpha, readableOn, shift, tonalScale } from './color';
+import { alpha, contrastRatio, readableOn, shift, tonalScale } from './color';
 
 /**
  * Generates the stylesheet for a rendered site from the theme tokens.
@@ -14,6 +14,7 @@ export function cssVariables(t: Theme): Record<string, string> {
     soft: [`0 1px 2px ${alpha('#000', 0.04)}, 0 4px 16px ${alpha('#000', 0.06)}`, `0 12px 40px ${alpha('#000', 0.1)}`],
     medium: [`0 2px 6px ${alpha('#000', 0.08)}, 0 10px 30px ${alpha('#000', 0.12)}`, `0 24px 60px ${alpha('#000', 0.18)}`],
     dramatic: [`0 4px 14px ${alpha('#000', 0.18)}, 0 20px 50px ${alpha(p.primary, 0.18)}`, `0 40px 100px ${alpha(p.primary, 0.3)}`],
+    hard: [`4px 4px 0 ${p.text}`, `8px 8px 0 ${p.text}`],
   };
   const density = { compact: 0.75, comfortable: 1, spacious: 1.3 }[t.density];
   const scale = tonalScale(p.primary);
@@ -21,6 +22,8 @@ export function cssVariables(t: Theme): Record<string, string> {
     '--fw-primary': p.primary,
     '--fw-primary-hover': shift(p.primary, t.mode === 'dark' ? 6 : -6),
     '--fw-primary-fg': readableOn(p.primary),
+    // Primary used as text: falls back to the text color when contrast is too low (e.g. yellow on cream).
+    '--fw-primary-ink': contrastRatio(p.primary, p.background) >= 3 ? p.primary : p.text,
     '--fw-primary-soft': alpha(p.primary, t.mode === 'dark' ? 0.16 : 0.1),
     '--fw-secondary': p.secondary,
     '--fw-secondary-fg': readableOn(p.secondary),
@@ -45,7 +48,61 @@ export function cssVariables(t: Theme): Record<string, string> {
   };
 }
 
-export function generateSiteCSS(t: Theme): string {
+/** Splits a selector list on top-level commas (ignores commas inside :where(…)). */
+function splitSelectors(list: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let cur = '';
+  for (const ch of list) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) { out.push(cur); cur = ''; } else cur += ch;
+  }
+  out.push(cur);
+  return out.map((x) => x.trim()).filter(Boolean);
+}
+
+/**
+ * Scopes every rule under `root` so several themes can coexist on one page
+ * (template gallery thumbnails, landing demo) without leaking into each other.
+ * Selectors that mention `.fw-site` get it replaced by `root`; all others are
+ * prefixed with it. @media/@container/@supports are recursed, @keyframes kept.
+ */
+export function scopeCss(css: string, root: string): string {
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const walk = (str: string): string => {
+    let out = '';
+    let i = 0;
+    while (i < str.length) {
+      const open = str.indexOf('{', i);
+      if (open < 0) break;
+      const prelude = str.slice(i, open).trim();
+      let depth = 1;
+      let j = open + 1;
+      while (j < str.length && depth > 0) {
+        if (str[j] === '{') depth++;
+        else if (str[j] === '}') depth--;
+        j++;
+      }
+      const body = str.slice(open + 1, j - 1);
+      if (/^@keyframes/.test(prelude)) out += `${prelude}{${body}}\n`;
+      else if (/^@(media|container|supports)/.test(prelude)) out += `${prelude}{\n${walk(body)}}\n`;
+      else if (prelude) {
+        const sel = splitSelectors(prelude).map((x) => (x.includes('.fw-site') ? x.split('.fw-site').join(root) : `${root} ${x}`)).join(',');
+        out += `${sel}{${body.trim()}}\n`;
+      }
+      i = j;
+    }
+    return out;
+  };
+  return walk(src);
+}
+
+export function generateSiteCSS(t: Theme, scope = '.fw-site'): string {
+  return scopeCss(rawSiteCSS(t), scope);
+}
+
+function rawSiteCSS(t: Theme): string {
   const vars = Object.entries(cssVariables(t)).map(([k, v]) => `  ${k}: ${v};`).join('\n');
   const s = t.scale;
   const b = t.baseSize;
@@ -53,7 +110,14 @@ export function generateSiteCSS(t: Theme): string {
   const h1 = +Math.min(104, Math.max(64, b * s ** 6.5)).toFixed(1);
   const h2 = +Math.min(64, Math.max(40, b * s ** 4.5)).toFixed(1);
   const h3 = +(b * s ** 1.5).toFixed(1);
-  const serifHeading = /Serif|Playfair|Fraunces|Cormorant/.test(t.fontHeading);
+  const serifHeading = /Serif|Playfair|Fraunces|Cormorant|Lora|Gloock/.test(t.fontHeading);
+  // Display faces that ship one weight must not be faux-bolded.
+  const singleWeight = /Archivo Black|Bebas Neue|Gloock|Young Serif|Instrument Serif|DM Serif Display/.test(t.fontHeading);
+  const condensed = /Bebas Neue/.test(t.fontHeading);
+  const hWeight = singleWeight ? 400 : serifHeading ? 500 : 700;
+  const h1Track = condensed ? '0.005em' : serifHeading ? '-0.01em' : '-0.035em';
+  const h2Track = condensed ? '0.01em' : serifHeading ? '-0.005em' : '-0.025em';
+  const hLine = condensed ? 0.92 : 1.04;
 
   const btn: Record<Theme['buttonStyle'], string> = {
     solid: `.fw-btn{border-radius:var(--fw-radius-sm)}`,
@@ -116,12 +180,12 @@ ${vars}
 .fw-overlay{position:absolute;inset:0;background:#000;z-index:0}
 
 /* ── Typography ───────────────────────── */
-.fw-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fw-primary);margin-bottom:18px}
+.fw-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fw-primary-ink);margin-bottom:18px}
 .fw-bg-primary .fw-eyebrow,.fw-bg-gradient .fw-eyebrow,.fw-bg-dark .fw-eyebrow,.fw-bg-image .fw-eyebrow{color:inherit;opacity:.85}
 .fw-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border:1px solid var(--fw-border);border-radius:999px;font-size:.82em;font-weight:500;background:${alpha(t.palette.surface, 0.6)};backdrop-filter:blur(8px);margin-bottom:26px}
 .fw-badge b{background:var(--fw-primary);color:var(--fw-primary-fg);border-radius:999px;padding:2px 10px;font-size:.9em;font-weight:600}
-.fw-h1{font-family:var(--fw-font-heading);font-size:clamp(${(h1 * 0.5).toFixed(0)}px,${(h1 / 12).toFixed(2)}cqi,${h1}px);line-height:1.04;letter-spacing:${serifHeading ? '-0.01em' : '-0.035em'};font-weight:${serifHeading ? 500 : 700}}
-.fw-h2{font-family:var(--fw-font-heading);font-size:clamp(${(h2 * 0.6).toFixed(0)}px,${(h2 / 15).toFixed(2)}cqi,${h2}px);line-height:1.1;letter-spacing:${serifHeading ? '-0.005em' : '-0.025em'};font-weight:${serifHeading ? 500 : 700}}
+.fw-h1{font-family:var(--fw-font-heading);font-size:clamp(${(h1 * 0.5).toFixed(0)}px,${(h1 / 12).toFixed(2)}cqi,${h1}px);line-height:${hLine};letter-spacing:${h1Track};font-weight:${hWeight}}
+.fw-h2{font-family:var(--fw-font-heading);font-size:clamp(${(h2 * 0.6).toFixed(0)}px,${(h2 / 15).toFixed(2)}cqi,${h2}px);line-height:${condensed ? 0.95 : 1.1};letter-spacing:${h2Track};font-weight:${hWeight}}
 .fw-h3{font-family:var(--fw-font-heading);font-size:${h3}px;line-height:1.25;font-weight:600;letter-spacing:-0.01em}
 .fw-h1 em,.fw-h2 em{font-style:${serifHeading ? 'italic' : 'normal'};background:linear-gradient(120deg,var(--fw-primary),var(--fw-accent));-webkit-background-clip:text;background-clip:text;color:transparent}
 .fw-lead{font-size:1.18em;color:var(--fw-muted);margin-top:20px;line-height:1.6;max-width:640px}
@@ -139,13 +203,22 @@ ${vars}
 .fw-bg-primary .fw-btn-primary,.fw-bg-gradient .fw-btn-primary{background:#fff;color:#0b0b12}
 .fw-bg-primary .fw-btn-secondary,.fw-bg-gradient .fw-btn-secondary,.fw-bg-dark .fw-btn-secondary,.fw-bg-image .fw-btn-secondary{border-color:rgba(255,255,255,.35)}
 ${btn[t.buttonStyle]}
+${t.buttonStyle === 'glass' && t.mode === 'dark' ? `.fw-card{background:${alpha('#ffffff', 0.035)}!important;backdrop-filter:blur(18px);border-color:${alpha('#ffffff', 0.09)}}` : ''}
+${t.shadow === 'hard' ? `/* Neo-brutalism: thick outlines + hard offset shadows */
+.fw-card,.fw-media,.fw-window,.fw-btn,.fw-input,.fw-badge,.fw-cta-card,.fw-icon,.fw-kpi,.fw-chart,.fw-socials a,.fw-burger{border:2px solid var(--fw-text)!important}
+.fw-btn{box-shadow:var(--fw-shadow)}
+.fw-btn:hover,.fw-card:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--fw-text)}
+.fw-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--fw-text)}
+.fw-icon{background:var(--fw-primary);color:var(--fw-primary-fg)}
+.fw-nav{border-bottom:2px solid var(--fw-text)}
+.fw-h1 em,.fw-h2 em{background:var(--fw-primary);color:var(--fw-text);-webkit-background-clip:border-box;background-clip:border-box;padding:0 .12em;font-style:normal;box-shadow:4px 4px 0 var(--fw-text);border:2px solid var(--fw-text)}` : ''}
 
 /* ── Cards & icons ────────────────────── */
 .fw-card{background:var(--fw-bg);border:1px solid var(--fw-border);border-radius:var(--fw-radius);padding:clamp(22px,2.6cqi,32px);box-shadow:var(--fw-shadow);transition:transform .25s ease,box-shadow .25s ease}
 .fw-bg-surface .fw-card{background:var(--fw-bg)}
 .fw-bg-default .fw-card{background:var(--fw-surface)}
 .fw-card:hover{transform:translateY(-3px);box-shadow:var(--fw-shadow-lg)}
-.fw-icon{width:46px;height:46px;border-radius:var(--fw-radius-sm);display:grid;place-items:center;background:var(--fw-primary-soft);color:var(--fw-primary);margin-bottom:20px}
+.fw-icon{width:46px;height:46px;border-radius:var(--fw-radius-sm);display:grid;place-items:center;background:var(--fw-primary-soft);color:var(--fw-primary-ink);margin-bottom:20px}
 .fw-icon svg{width:22px;height:22px}
 .fw-card .fw-h3{margin-bottom:8px}
 
@@ -221,7 +294,7 @@ ${btn[t.buttonStyle]}
 /* ── Content ──────────────────────────── */
 .fw-checks{display:grid;gap:14px;margin-top:28px}
 .fw-checks li{display:flex;gap:12px;align-items:flex-start}
-.fw-checks svg{flex:none;width:20px;height:20px;color:var(--fw-primary);margin-top:3px}
+.fw-checks svg{flex:none;width:20px;height:20px;color:var(--fw-primary-ink);margin-top:3px}
 
 /* ── Gallery ──────────────────────────── */
 .fw-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -257,7 +330,7 @@ ${btn[t.buttonStyle]}
 .fw-faq details{border-bottom:1px solid var(--fw-border);padding:22px 0}
 .fw-faq summary{cursor:pointer;font-weight:600;font-size:1.08em;list-style:none;display:flex;justify-content:space-between;gap:16px}
 .fw-faq summary::-webkit-details-marker{display:none}
-.fw-faq summary::after{content:'+';font-size:1.4em;line-height:1;color:var(--fw-primary);transition:transform .2s}
+.fw-faq summary::after{content:'+';font-size:1.4em;line-height:1;color:var(--fw-primary-ink);transition:transform .2s}
 .fw-faq details[open] summary::after{transform:rotate(45deg)}
 .fw-faq details p{margin-top:14px;color:var(--fw-muted)}
 
@@ -295,7 +368,7 @@ textarea.fw-input{min-height:130px;resize:vertical}
 @keyframes fw-slide-up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 @keyframes fw-zoom{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
 @keyframes fw-blur{from{opacity:0;filter:blur(12px)}to{opacity:1;filter:none}}
-.fw-js [data-anim]:not(.fw-in){opacity:0}
+.fw-site.fw-js [data-anim]:not(.fw-in){opacity:0}
 .fw-in[data-anim="fade"]{animation:fw-fade .9s ease both}
 .fw-in[data-anim="slide-up"]{animation:fw-slide-up .8s cubic-bezier(.2,.7,.2,1) both}
 .fw-in[data-anim="zoom"]{animation:fw-zoom .8s cubic-bezier(.2,.7,.2,1) both}

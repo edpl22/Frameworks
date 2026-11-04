@@ -3,6 +3,7 @@ import { Search, Sparkles, Download, Undo2, Redo2, Eye, Monitor, Tablet, Smartph
 import { useStore, activePage } from '../core/store';
 import { SECTIONS, SECTION_MAP } from '../core/sections';
 import { THEME_PRESETS } from '../core/theme';
+import { TEMPLATES } from '../core/templates';
 import { mod } from './ui';
 import { openProjectFile, saveProject } from './fileOps';
 
@@ -45,6 +46,7 @@ export function CommandPalette() {
       { id: 'm', group: 'Visualização', label: 'Mobile', icon: <Smartphone size={14} />, shortcut: '3', run: () => s.set({ device: 'mobile' }) },
       { id: 'light', group: 'Design', label: 'Tema: modo claro', icon: <Sun size={14} />, run: () => s.applyPreset('saas') },
       { id: 'dark', group: 'Design', label: 'Tema: modo escuro', icon: <Moon size={14} />, run: () => s.applyPreset('midnight') },
+      ...TEMPLATES.map((t) => ({ id: 'tpl-' + t.id, group: 'Templates', label: `Template: ${t.name}`, icon: <LayoutTemplate size={14} />, keywords: `template ${t.category} ${t.tags.join(' ')} ${t.description}`, run: () => s.newFromTemplate(t.id) })),
       ...THEME_PRESETS.map((p) => ({ id: 'preset-' + p.id, group: 'Design', label: `Aplicar preset: ${p.label}`, icon: <Palette size={14} />, keywords: 'tema theme preset', run: () => s.applyPreset(p.id) })),
       ...SECTIONS.flatMap((d) => d.variants.map((v) => ({
         id: `add-${d.type}-${v.id}`, group: 'Adicionar seção', label: `${d.label}${d.variants.length > 1 ? ` — ${v.label}` : ''}`,

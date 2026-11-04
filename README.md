@@ -19,11 +19,12 @@ Frameworks Studio é um editor visual de sites. Você monta páginas a partir de
 | **Canvas** | Arrastar e soltar a partir da biblioteca, reordenar seções, edição de texto inline (`*destaque*` vira gradiente), preview desktop/tablet/mobile com container queries, zoom, grade de 12 colunas e modo preview |
 | **Biblioteca** | 15 tipos de seção com mais de 30 variações: Navbar, Hero, Logos, Recursos (grid/bento/lista), Números, Texto + mídia, Galeria, Depoimentos, Preços, Equipe, FAQ, CTA, Contato, Newsletter e Rodapé |
 | **Inspetor** | Painel gerado a partir do schema de cada seção (textos, listas, ícones, imagens, toggles) e controles de estilo: fundo (mesh, gradiente, imagem com overlay), espaçamento, alinhamento, largura, animação, bloqueio e instruções por seção para o Claude |
-| **Design system** | 8 presets, gerador de paleta por harmonia (análoga, complementar, triádica, split, monocromática), contraste WCAG ao vivo, 14 pares tipográficos, escala modular, raio, sombras, estilo de botão e densidade |
+| **Design system** | 19 presets (incl. glassmorphism, neo-brutalismo, Swiss minimal), sombra brutal, gerador de paleta por harmonia (análoga, complementar, triádica, split, monocromática), contraste WCAG ao vivo, 22 pares tipográficos, escala modular, raio, sombras, estilo de botão e densidade |
 | **Briefing** | Objetivo, público, tom de voz, segmento, idioma, stack de destino (Next.js, React+Vite, Astro, Nuxt, SvelteKit, HTML), funcionalidades e referências |
 | **Prompt Builder** | Preview Markdown ao vivo, estimativa de tokens, nível de detalhe, PT/EN, toggles de seções, cópia, download `.md` e comando CLI pronto |
 | **Exportação** | ZIP completo, HTML por página, `.fwstudio` (projeto), design tokens W3C, tema Tailwind v4/v3, CSS variables, cópia do HTML e importação |
-| **Produtividade** | Paleta de comandos `⌘K`, atalhos de teclado, 150 passos de undo/redo com agrupamento de edições, autosave local, páginas múltiplas com SEO, copiar/colar seções e 5 templates |
+| **Produtividade** | Paleta de comandos `⌘K`, atalhos de teclado, 150 passos de undo/redo com agrupamento de edições, autosave local, páginas múltiplas com SEO, copiar/colar seções |
+| **Templates** | 20 templates originais com conteúdo próprio em 8 categorias (SaaS & Tech, Portfólio & Agência, E-commerce & Marca, Negócios locais, Eventos & Educação, Institucional, Mobile, Básico), filtros por estilo visual, busca e versões multi-página |
 
 ## Começando
 

@@ -79,7 +79,7 @@ export interface Theme {
   baseSize: number; // px
   scale: number; // modular type scale ratio
   radius: number; // px
-  shadow: 'none' | 'soft' | 'medium' | 'dramatic';
+  shadow: 'none' | 'soft' | 'medium' | 'dramatic' | 'hard';
   buttonStyle: 'solid' | 'pill' | 'outline' | 'glass';
   density: 'compact' | 'comfortable' | 'spacious';
 }

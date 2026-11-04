@@ -5,7 +5,8 @@ import {
 } from 'lucide-react';
 import { Logo } from '../studio/TopBar';
 import { Github } from '../core/icons';
-import { createDefaultProject } from '../core/factory';
+import { createDefaultProject, TEMPLATES } from '../core/templates';
+import { THEME_PRESETS } from '../core/theme';
 import { generatePrompt } from '../core/prompt';
 import { renderPageMarkup } from '../core/exporters';
 import { generateSiteCSS } from '../core/siteCss';
@@ -63,7 +64,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { n: '01', title: 'Desenhe', text: 'Escolha um template ou comece do zero. Monte páginas com 15 seções e 30+ variações.' },
+  { n: '01', title: 'Desenhe', text: `Escolha entre ${TEMPLATES.length} templates — SaaS, portfólio, e-commerce, restaurante, evento e mais — ou comece do zero.` },
   { n: '02', title: 'Refine', text: 'Ajuste tema, tipografia, espaçamentos, animações e conteúdo com controles precisos.' },
   { n: '03', title: 'Gere', text: 'Um clique transforma seu design em um prompt estruturado e otimizado para o Claude Code.' },
   { n: '04', title: 'Construa', text: 'Cole no Claude Code e receba um projeto Next.js, Astro, Nuxt, SvelteKit ou HTML pronto para produção.' },
@@ -74,7 +75,7 @@ export function Landing() {
   useSpotlight();
   const demo = useMemo(() => {
     const p = createDefaultProject();
-    return { prompt: generatePrompt(p, { detail: 'concise', includeContent: false, includeTokens: true, includeAcceptance: false, includeJsonSpec: false, includePlan: false, promptLanguage: 'pt-BR' }).slice(0, 1900), html: renderPageMarkup({ ...p.pages[0], sections: p.pages[0].sections.slice(0, 4) }), css: generateSiteCSS(p.theme).replaceAll('.fw-site', '.lp-demo .fw-site') };
+    return { prompt: generatePrompt(p, { detail: 'concise', includeContent: false, includeTokens: true, includeAcceptance: false, includeJsonSpec: false, includePlan: false, promptLanguage: 'pt-BR' }).slice(0, 1900), html: renderPageMarkup({ ...p.pages[0], sections: p.pages[0].sections.slice(0, 4) }), css: generateSiteCSS(p.theme, '.lp-demo .fw-site') };
   }, []);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -158,7 +159,7 @@ export function Landing() {
 
       {/* LOGOS / STATS */}
       <section className="lp-stats lp-container" data-reveal>
-        {[['15', 'tipos de seção'], ['30+', 'variações de layout'], ['8', 'presets de design'], ['6', 'stacks de destino']].map(([v, l]) => (
+        {[[String(TEMPLATES.length), 'templates profissionais'], ['15', 'tipos de seção'], [String(THEME_PRESETS.length), 'presets de design'], ['6', 'stacks de destino']].map(([v, l]) => (
           <div key={l}><b>{v}</b><span>{l}</span></div>
         ))}
       </section>

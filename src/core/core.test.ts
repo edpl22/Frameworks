@@ -1,6 +1,9 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { contrastRatio, hexToHsl, hslToHex, harmonyPalette, normalizeHex, wcagLevel } from './color';
-import { createDefaultProject, createSection, setPath, TEMPLATES, projectFromTemplate } from './factory';
+import { createSection, setPath } from './factory';
+import { createDefaultProject, TEMPLATES, projectFromTemplate } from './templates';
+import { THEME_PRESETS } from './theme';
+import { generateSiteCSS } from './siteCss';
 import { generatePrompt, DEFAULT_PROMPT_OPTIONS, STACKS } from './prompt';
 import { exportPageHTML, designTokens, parseProject, projectJSON, renderPageMarkup, exportZip } from './exporters';
 import { SECTIONS } from './sections';
@@ -42,8 +45,49 @@ describe('factory', () => {
     expect(o.items[1].title).toBe('b');
     expect(n.items[0]).toBe(o.items[0]);
   });
-  it('builds every template', () => {
-    for (const t of TEMPLATES) expect(projectFromTemplate(t).pages[0].sections.length).toBeGreaterThan(0);
+  it('builds every template with valid preset, unique id and renderable pages', () => {
+    const ids = new Set<string>();
+    for (const t of TEMPLATES) {
+      expect(ids.has(t.id), t.id).toBe(false);
+      ids.add(t.id);
+      expect(THEME_PRESETS.some((p) => p.id === t.preset), `${t.id} preset`).toBe(true);
+      const p = projectFromTemplate(t);
+      for (const pg of p.pages) {
+        expect(pg.sections.length).toBeGreaterThan(0);
+        expect(renderPageMarkup(pg)).toContain('fw-site');
+      }
+      // template copy must reach the generated prompt
+      if (t.brief.projectName) expect(generatePrompt(p)).toContain(t.brief.projectName);
+    }
+  });
+  it('rewrites internal page links in multi-page exports', () => {
+    const p = projectFromTemplate(TEMPLATES.find((t) => t.id === 'agency')!);
+    expect(p.pages.length).toBe(3);
+    const html = exportPageHTML(p, p.pages[0]);
+    expect(html).toContain('href="./projetos.html"');
+    expect(html).toContain('href="./contato.html"');
+  });
+  it('does not leak generic demo copy into templates that rewrite a section', () => {
+    for (const t of TEMPLATES) {
+      const p = projectFromTemplate(t);
+      for (const pg of p.pages) for (const s of pg.sections) {
+        if (t.id === 'saas' || t.id === 'startup' || t.id === 'brand' || t.id === 'blank') continue;
+        expect(String(s.props.subtitle ?? ''), `${t.id}/${s.type}`).not.toContain('Ferramentas poderosas desenhadas');
+      }
+    }
+  });
+  it('generates CSS for every preset, fully scoped', () => {
+    for (const p of THEME_PRESETS) {
+      const css = generateSiteCSS(p.theme, '.scope-x .fw-site');
+      expect(css).toContain('--fw-primary');
+      // every non-keyframe rule must be scoped
+      const rules = css.replace(/@keyframes[^{]+\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g, '').match(/[^{}@]+\{[^{}]*\}/g) ?? [];
+      for (const r of rules) {
+        const sel = r.slice(0, r.indexOf('{')).trim();
+        if (/^(from|to|\d+%)$/.test(sel)) continue;
+        for (const part of sel.split(/,(?![^(]*\))/)) expect(part, sel).toContain('.scope-x .fw-site');
+      }
+    }
   });
 });
 

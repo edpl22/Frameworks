@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Brief, Device, Page, Palette, Project, Section, SectionStyle, SectionType, Theme } from './types';
-import { cloneSection, createDefaultProject, createPage, createSection, projectFromTemplate, setPath, TEMPLATES, uid } from './factory';
+import { cloneSection, createPage, createSection, setPath, uid } from './factory';
+import { createDefaultProject, projectFromTemplate, TEMPLATES } from './templates';
 import { THEME_PRESETS } from './theme';
 
 const STORAGE_KEY = 'fw.project.v1';

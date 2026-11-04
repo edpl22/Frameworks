@@ -1,6 +1,5 @@
-import type { Brief, Page, Project, Section, SectionStyle, SectionType, Theme } from './types';
+import type { Brief, Page, Section, SectionStyle, SectionType } from './types';
 import { SECTION_MAP } from './sections';
-import { DEFAULT_THEME, THEME_PRESETS } from './theme';
 
 export const uid = (prefix = 'id') => `${prefix}_${Math.random().toString(36).slice(2, 9)}${Date.now().toString(36).slice(-3)}`;
 
@@ -53,85 +52,6 @@ export const DEFAULT_BRIEF: Brief = {
   extraInstructions: '',
   language: 'pt-BR',
 };
-
-export interface Template {
-  id: string;
-  name: string;
-  description: string;
-  preset: string;
-  brief: Partial<Brief>;
-  pages: { name: string; slug: string; sections: (SectionType | [SectionType, string, Partial<SectionStyle>?])[] }[];
-}
-
-export const TEMPLATES: Template[] = [
-  {
-    id: 'saas',
-    name: 'SaaS Premium',
-    description: 'Landing de produto com mockup, bento, preços e FAQ',
-    preset: 'midnight',
-    brief: { industry: 'SaaS / Tecnologia' },
-    pages: [{ name: 'Início', slug: '/', sections: ['navbar', 'hero', 'logos', ['features', 'bento'], 'stats', 'content', 'testimonials', 'pricing', 'faq', 'cta', 'footer'] }],
-  },
-  {
-    id: 'agency',
-    name: 'Agência Criativa',
-    description: 'Portfólio ousado com galeria masonry e equipe',
-    preset: 'mono',
-    brief: { projectName: 'Studio Norte', industry: 'Agência / Design', tone: ['Ousado', 'Criativo', 'Minimalista'] },
-    pages: [{ name: 'Início', slug: '/', sections: ['navbar', ['hero', 'minimal', { background: 'default' }], ['gallery', 'masonry'], ['features', 'list'], 'team', ['testimonials', 'highlight'], 'contact', ['footer', 'simple']] }],
-  },
-  {
-    id: 'startup',
-    name: 'Startup Tech',
-    description: 'Hero dividido, recursos em grid e newsletter',
-    preset: 'neon',
-    brief: { industry: 'Tecnologia / IA', tone: ['Inovador', 'Técnico', 'Direto'] },
-    pages: [{ name: 'Início', slug: '/', sections: ['navbar', ['hero', 'split'], 'logos', 'features', ['stats', 'bar'], 'content', 'pricing', 'newsletter', 'footer'] }],
-  },
-  {
-    id: 'brand',
-    name: 'Marca de Luxo',
-    description: 'Editorial elegante, serifado e espaçoso',
-    preset: 'editorial',
-    brief: { projectName: 'Maison Lumière', industry: 'Moda / Luxo', tone: ['Elegante', 'Sofisticado', 'Atemporal'] },
-    pages: [{ name: 'Início', slug: '/', sections: ['navbar', ['hero', 'split', { background: 'surface' }], ['content', 'image-left'], 'gallery', ['testimonials', 'highlight', { background: 'default' }], 'newsletter', 'footer'] }],
-  },
-  {
-    id: 'blank',
-    name: 'Em branco',
-    description: 'Comece do zero com navbar e rodapé',
-    preset: 'saas',
-    brief: {},
-    pages: [{ name: 'Início', slug: '/', sections: ['navbar', 'footer'] }],
-  },
-];
-
-export function projectFromTemplate(tpl: Template): Project {
-  const preset = THEME_PRESETS.find((p) => p.id === tpl.preset)?.theme ?? DEFAULT_THEME;
-  const brief: Brief = { ...DEFAULT_BRIEF, ...tpl.brief };
-  const pages: Page[] = tpl.pages.map((pg) => {
-    const page = createPage(pg.name, pg.slug);
-    page.sections = pg.sections.map((entry) => {
-      const [type, variant, style] = Array.isArray(entry) ? entry : [entry, undefined, undefined];
-      const s = createSection(type, variant);
-      if (style) s.style = { ...s.style, ...style };
-      if ((type === 'navbar' || type === 'footer') && brief.projectName) {
-        s.props.brand = brief.projectName;
-        if (type === 'footer') s.props.copyright = `© ${new Date().getFullYear()} ${brief.projectName}. Todos os direitos reservados.`;
-      }
-      return s;
-    });
-    page.seoTitle = `${brief.projectName} — ${brief.tagline}`;
-    page.seoDescription = brief.tagline;
-    return page;
-  });
-  const now = Date.now();
-  return { id: uid('proj'), version: 1, name: brief.projectName, createdAt: now, updatedAt: now, brief, theme: structuredClone(preset) as Theme, pages };
-}
-
-export function createDefaultProject(): Project {
-  return projectFromTemplate(TEMPLATES[0]);
-}
 
 /** Immutable set by dotted path, e.g. setPath(obj, 'items.2.title', 'x'). */
 export function setPath<T>(obj: T, path: string, value: unknown): T {

@@ -1,10 +1,10 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { Sparkles, Copy, Download, Terminal, FileCode2, FileArchive, FileJson, Palette, Wind, Braces, FileText, Upload, CheckCircle2, AlertCircle, Info, Keyboard, LayoutTemplate } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Sparkles, Copy, Download, Terminal, FileCode2, FileArchive, FileJson, Palette, Wind, Braces, FileText, Upload, CheckCircle2, AlertCircle, Info, Keyboard, LayoutTemplate, Search } from 'lucide-react';
 import { useStore, activePage } from '../core/store';
 import { generatePrompt, estimateTokens, DEFAULT_PROMPT_OPTIONS, STACKS, type PromptOptions } from '../core/prompt';
 import { exportPageHTML, exportZip, projectJSON, designTokens, tailwindConfig, cssVarsFile, pageFileName, renderPageMarkup } from '../core/exporters';
 import { generateSiteCSS } from '../core/siteCss';
-import { TEMPLATES, projectFromTemplate } from '../core/factory';
+import { TEMPLATES, TEMPLATE_CATEGORIES, projectFromTemplate, type TemplateCategory } from '../core/templates';
 import { copyText, saveAs } from '../core/platform';
 import { Modal, Segmented, Toggle, Field, mod } from './ui';
 import { openProjectFile } from './fileOps';
@@ -145,24 +145,108 @@ export function ExportModal() {
   );
 }
 
+// Template thumbnails are expensive to render, so they are cached for the session.
+let previewCache: { t: (typeof TEMPLATES)[number]; html: string; css: string; swatches: string[]; font: string; pages: number; sections: number }[] | null = null;
+function templatePreviews() {
+  if (!previewCache) {
+    previewCache = TEMPLATES.map((t) => {
+      const p = projectFromTemplate(t);
+      const pg = p.pages[0];
+      const pal = p.theme.palette;
+      return {
+        t,
+        html: renderPageMarkup({ ...pg, sections: pg.sections.slice(0, 7) }),
+        css: generateSiteCSS(p.theme, `.tpl-${t.id} .fw-site`),
+        swatches: [pal.background, pal.primary, pal.secondary, pal.accent, pal.text],
+        font: `${p.theme.fontHeading} / ${p.theme.fontBody}`,
+        pages: p.pages.length,
+        sections: p.pages.reduce((n, x) => n + x.sections.length, 0),
+      };
+    });
+  }
+  return previewCache;
+}
+
 export function TemplatesModal() {
   const { set, newFromTemplate } = useStore();
-  const previews = useMemo(() => TEMPLATES.map((t) => {
-    const p = projectFromTemplate(t);
-    return { t, html: renderPageMarkup(p.pages[0]), css: generateSiteCSS(p.theme).replaceAll('.fw-site', `.tpl-${t.id} .fw-site`) };
-  }), []);
+  const previews = useMemo(templatePreviews, []);
+  const [cat, setCat] = useState<TemplateCategory | 'Todos'>('Todos');
+  const [tag, setTag] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  // Thumbnails render a 1400px-wide page; scale it to the real card width.
+  const gridRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const ro = new ResizeObserver(() => {
+      const thumb = grid.querySelector<HTMLElement>('.tpl-thumb');
+      if (thumb) grid.style.setProperty('--tpl-scale', String(thumb.clientWidth / 1400));
+    });
+    ro.observe(grid);
+    return () => ro.disconnect();
+  }, []);
+  const allTags = useMemo(() => Array.from(new Set(TEMPLATES.flatMap((t) => t.tags))).sort(), []);
+  const term = q.trim().toLowerCase();
+  const list = previews.filter(({ t }) =>
+    (cat === 'Todos' || t.category === cat) &&
+    (!tag || t.tags.includes(tag)) &&
+    (!term || `${t.name} ${t.description} ${t.category} ${t.tags.join(' ')} ${t.brief.industry ?? ''}`.toLowerCase().includes(term)));
+
   return (
-    <Modal title="Templates" subtitle="Ponto de partida profissional. Tudo continua 100% editável." icon={<LayoutTemplate size={16} />} onClose={() => set({ modal: null })}>
-      <div className="tpl-grid">
-        {previews.map(({ t, html, css }) => (
-          <button key={t.id} className="tpl" onClick={() => newFromTemplate(t.id)}>
-            <div className={`tpl-thumb tpl-${t.id}`}>
-              <style>{css}</style>
-              <div className="tpl-thumb-inner" dangerouslySetInnerHTML={{ __html: html }} />
+    <Modal
+      title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>Templates <span className="badge badge-brand">{TEMPLATES.length}</span></span>}
+      subtitle="Layouts originais inspirados nos estilos mais usados em kits de design. Tudo continua 100% editável — e dá para desfazer com Ctrl+Z."
+      icon={<LayoutTemplate size={16} />}
+      onClose={() => set({ modal: null })}
+    >
+      <div className="tpl-layout">
+        <aside className="tpl-side">
+          {(['Todos', ...TEMPLATE_CATEGORIES] as const).map((c) => {
+            const n = c === 'Todos' ? TEMPLATES.length : TEMPLATES.filter((t) => t.category === c).length;
+            return (
+              <button key={c} className={'tpl-cat' + (cat === c ? ' on' : '')} onClick={() => setCat(c)}>
+                <span>{c}</span><span className="n">{n}</span>
+              </button>
+            );
+          })}
+        </aside>
+        <div className="tpl-main">
+          <div className="tpl-toolbar">
+            <div className="search" style={{ margin: 0, flex: 1, maxWidth: 320 }}>
+              <Search size={14} />
+              <input className="input" placeholder="Buscar por nicho, estilo…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
             </div>
-            <div className="tpl-info"><h3>{t.name}</h3><p>{t.description}</p></div>
-          </button>
-        ))}
+            <div className="chips">
+              {allTags.map((x) => (
+                <button key={x} className={'chip' + (tag === x ? ' on' : '')} onClick={() => setTag(tag === x ? null : x)}>{x}</button>
+              ))}
+            </div>
+          </div>
+          <div className="tpl-grid" ref={gridRef}>
+            {list.map(({ t, html, css, swatches, font, pages, sections }) => (
+              <button key={t.id} className="tpl" onClick={() => newFromTemplate(t.id)}>
+                <div className={`tpl-thumb tpl-${t.id}`}>
+                  <style>{css}</style>
+                  <div className="tpl-thumb-inner" dangerouslySetInnerHTML={{ __html: html }} />
+                  <span className="tpl-use">Usar template</span>
+                </div>
+                <div className="tpl-info">
+                  <div className="tpl-row">
+                    <h3>{t.name}</h3>
+                    <span className="tpl-sw">{swatches.map((c, i) => <i key={i} style={{ background: c }} />)}</span>
+                  </div>
+                  <p>{t.description}</p>
+                  <div className="tpl-meta">
+                    <span>{pages} {pages > 1 ? 'páginas' : 'página'} · {sections} seções</span>
+                    <span className="mono">{font}</span>
+                  </div>
+                  <div className="tpl-tags">{t.tags.map((x) => <span key={x}>{x}</span>)}</div>
+                </div>
+              </button>
+            ))}
+            {!list.length && <p className="hint" style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40 }}>Nenhum template encontrado.</p>}
+          </div>
+        </div>
       </div>
     </Modal>
   );
