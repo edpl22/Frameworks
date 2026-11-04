@@ -47,6 +47,8 @@ export interface CanvasEl {
   /** Heading level: 1 makes it the page's main title (h1). */
   level?: 1 | 2 | 3;
   mobileHidden?: boolean;
+  /** Elements sharing a group stay together when the grid stacks on phones (e.g. one card). */
+  group?: string;
 }
 
 export const GRID_COLS = 12;
@@ -78,6 +80,69 @@ export function canvasRows(p: Props): number {
 export function readingOrder(els: CanvasEl[]): CanvasEl[] {
   const key = (e: CanvasEl) => (e.kind === 'image' && e.rows > 2 ? e.row + (e.rows - 1) / 2 : e.row);
   return [...els].sort((a, b) => key(a) - key(b) || a.col - b.col || (a.z ?? 0) - (b.z ?? 0));
+}
+
+/** Gives copied elements fresh group names so a duplicated card does not merge with the original. */
+export function regroup(els: CanvasEl[]): CanvasEl[] {
+  const map = new Map<string, string>();
+  return els.map((e) => {
+    if (!e.group) return e;
+    if (!map.has(e.group)) map.set(e.group, `${e.group.replace(/~.*$/, '')}~${Math.random().toString(36).slice(2, 7)}`);
+    return { ...e, group: map.get(e.group) };
+  });
+}
+
+export interface MobileSlot { row: number; rows: number; backdrop?: boolean; inset?: boolean; padTop?: boolean; padBottom?: boolean }
+
+const area = (e: CanvasEl) => e.span * e.rows;
+const contains = (o: CanvasEl, e: CanvasEl) =>
+  e.col >= o.col && e.col + e.span <= o.col + o.span && e.row >= o.row && e.row + e.rows <= o.row + o.rows && (e.z ?? 1) > (o.z ?? 1);
+const canBackdrop = (e: CanvasEl) => e.kind === 'shape' && !e.blur && !['line', 'dot', 'ring', 'circle'].includes(e.shape ?? 'rect');
+
+/**
+ * Phone layout for a free-form section: one column, in reading order, but keeping
+ * units together. A unit is either an explicit `group` or a solid shape plus the
+ * elements laid on top of it (a card, a colored panel). The shape then becomes the
+ * unit's background, spanning its rows, instead of stacking as a loose block.
+ */
+export function mobileLayout(els: CanvasEl[]): Map<string, MobileSlot> {
+  const vis = els.filter((e) => !e.mobileHidden);
+  const groupOf = new Map<string, string>();
+  for (const e of vis) if (e.group) groupOf.set(e.id, `g:${e.group}`);
+  const candidates = vis.filter(canBackdrop);
+  for (const e of vis) {
+    if (groupOf.has(e.id)) continue;
+    const host = candidates.filter((o) => o !== e && contains(o, e)).sort((a, b) => area(a) - area(b))[0];
+    if (!host) continue;
+    const g = groupOf.get(host.id) ?? `b:${host.id}`;
+    groupOf.set(host.id, g);
+    groupOf.set(e.id, g);
+  }
+  const units = new Map<string, CanvasEl[]>();
+  for (const e of vis) {
+    const g = groupOf.get(e.id) ?? `e:${e.id}`;
+    units.set(g, [...(units.get(g) ?? []), e]);
+  }
+  const key = (e: CanvasEl) => (e.kind === 'image' && e.rows > 2 ? e.row + (e.rows - 1) / 2 : e.row);
+  const plan = [...units.values()].map((members) => {
+    const backdrop = members.length > 1
+      ? members.filter((m) => canBackdrop(m) && members.some((o) => o !== m && contains(m, o))).sort((a, b) => area(b) - area(a))[0]
+      : undefined;
+    const flow = readingOrder(members.filter((m) => m !== backdrop));
+    const lead = flow[0] ?? backdrop!;
+    return { backdrop, flow, k: key(lead), col: Math.min(...members.map((m) => m.col)) };
+  }).sort((a, b) => a.k - b.k || a.col - b.col);
+
+  const out = new Map<string, MobileSlot>();
+  let row = 1;
+  for (const u of plan) {
+    const start = row;
+    u.flow.forEach((e, i) => {
+      out.set(e.id, { row: row++, rows: 1, inset: !!u.backdrop, padTop: !!u.backdrop && i === 0, padBottom: !!u.backdrop && i === u.flow.length - 1 });
+    });
+    if (u.backdrop) out.set(u.backdrop.id, { row: start, rows: Math.max(1, row - start), backdrop: true });
+  }
+  return out;
 }
 
 export function colorValue(ref?: ColorRef): string | undefined {
@@ -151,12 +216,16 @@ function ElementBody({ e, i }: { e: CanvasEl; i: number }) {
   }
 }
 
-function elementStyle(e: CanvasEl, order: number): CSSProperties {
+function elementStyle(e: CanvasEl, m?: MobileSlot): CSSProperties {
   const s: CSSProperties & Record<string, string | number | undefined> = {
     gridColumn: `${e.col} / span ${e.span}`,
     gridRow: `${e.row} / span ${e.rows}`,
     zIndex: e.z ?? 1,
-    '--fw-mo': order,
+    '--fw-mr': m ? `${m.row} / span ${m.rows}` : undefined,
+    '--fw-mmin': m?.backdrop ? '0px' : undefined,
+    '--fw-mx': m?.inset ? '22px' : undefined,
+    '--fw-mt': m?.padTop ? '22px' : undefined,
+    '--fw-mb': m?.padBottom ? '22px' : undefined,
     '--fw-rs': e.rows,
     opacity: e.opacity ?? undefined,
   };
@@ -203,7 +272,7 @@ export function CanvasGrid({ s, p }: { s: Section; p: Props }) {
   const els = canvasElements(p);
   const rows = canvasRows(p);
   const rh = rowHeightOf(p);
-  const order = new Map(readingOrder(els).map((e, i) => [e.id, i]));
+  const mobile = mobileLayout(els);
   const sorted = [...els].map((e, i) => ({ e, i })).sort((a, b) => (a.e.z ?? 1) - (b.e.z ?? 1));
   const selected = new Set(canvasEditing?.selected ?? []);
   const single = canvasEditing && canvasEditing.selected.length === 1 ? canvasEditing.selected[0] : null;
@@ -218,7 +287,7 @@ export function CanvasGrid({ s, p }: { s: Section; p: Props }) {
             'fw-el', `fw-el-${e.kind}`, e.kind === 'shape' ? `fw-shape-${e.shape ?? 'rect'}` : '', e.mobileHidden ? 'fw-el-mhide' : '',
             selected.has(e.id) ? 'is-selected' : '',
           ].filter(Boolean).join(' ')}
-          style={elementStyle(e, order.get(e.id) ?? 0)}
+          style={elementStyle(e, mobile.get(e.id))}
         >
           <ElementBody e={e} i={i} />
           {single === e.id && <Handles />}

@@ -120,7 +120,7 @@ button { font: inherit; color: inherit; }
    ════════════════════════════════════════════════════════════════ */
 .studio { display: grid; grid-template-rows: 54px 1fr; height: 100vh; overflow: hidden; background: var(--bg); }
 .studio-body { display: grid; grid-template-columns: 56px 290px 1fr 330px; min-height: 0; }
-.studio.is-preview .studio-body { grid-template-columns: 0 0 1fr 0; }
+.studio.is-preview .studio-body { grid-template-columns: minmax(0, 1fr); }
 .studio.is-preview .rail, .studio.is-preview .lpanel, .studio.is-preview .rpanel { display: none; }
 
 /* Top bar */

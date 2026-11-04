@@ -6,7 +6,7 @@ import type { Props, PropValue, SectionStyle } from './types';
 //  Used by the Canvas "Elementos" panel and by the themed templates.
 // ════════════════════════════════════════════════════════════════
 
-export type Deco = 'none' | 'neon' | 'stars' | 'runes' | 'terminal' | 'playful' | 'pixel' | 'eq' | 'leaves' | 'orbs';
+export type Deco = 'none' | 'neon' | 'stars' | 'runes' | 'terminal' | 'playful' | 'pixel' | 'eq' | 'leaves' | 'orbs' | 'glitch' | 'crimson' | 'shelves';
 
 const E = newElement;
 const deco = (o: Partial<CanvasEl>) => E('shape', { mobileHidden: true, z: 0, ...o });
@@ -55,6 +55,44 @@ export function decoration(kind: Deco, rows: number, side: 'right' | 'left' | 'b
     case 'orbs': return [
       deco({ col: r, row: 1, span: 5, rows: Math.max(4, rows - 2), shape: 'circle', fill: 'gradient', blur: 60, opacity: 0.6 }),
     ];
+    case 'glitch': {
+      // Offset color slabs and scan bars: a block peeking out from behind the image, glitch strips around it.
+      const m = (c: number, span: number) => (side === 'left' ? 14 - c - span : c);
+      return [
+        deco({ col: m(9, 4), row: 2, span: 4, rows: Math.max(4, rows - 1), shape: 'rect', fill: 'primary', radius: 0 }),
+        deco({ col: m(7, 2), row: Math.max(2, rows - 3), span: 2, rows: 1, shape: 'rect', fill: 'accent', radius: 0, opacity: 0.9 }),
+        deco({ col: m(12, 1), row: 1, span: 1, rows: 1, shape: 'rect', fill: 'secondary', radius: 0, glow: true }),
+        deco({ col: m(6, 3), row: 2, span: 3, rows: 1, shape: 'line', fill: 'secondary', opacity: 0.8 }),
+        deco({ col: 1, row: rows, span: 6, rows: 1, shape: 'line', fill: 'primary', glow: true, opacity: 0.8 }),
+      ];
+    }
+    case 'crimson': return [
+      deco({ col: r + 1 > 9 ? 9 : r + 1, row: 1, span: 4, rows: Math.max(4, rows - 1), shape: 'rect', fill: 'primary', radius: 0, opacity: 0.92 }),
+      deco({ col: r, row: Math.max(2, rows - 4), span: 3, rows: 3, shape: 'ring', fill: 'accent', radius: 3, opacity: 0.85 }),
+      deco({ col: r, row: Math.max(2, rows - 4), span: 3, rows: 3, shape: 'circle', fill: 'primary', blur: 50, opacity: 0.45 }),
+      deco({ col: 1, row: rows, span: 12, rows: 1, shape: 'line', fill: 'primary', opacity: 0.85 }),
+      ...[[7, 1], [12, 3], [6, rows - 1]].map(([c, w]) => deco({ col: c, row: Math.max(1, w), span: 1, rows: 1, shape: 'dot', fill: 'accent', opacity: 0.8 })),
+    ];
+    case 'shelves': {
+      // A row of book spines standing on a shelf, with a warm lamp glow behind.
+      const spines: [number, ColorRef][] = [[8, 'primary'], [9, 'secondary'], [7, 'accent'], [9, 'secondary'], [8, 'primary']];
+      const c0 = side === 'left' ? 1 : 8;
+      return [
+        deco({ col: r, row: 1, span: 5, rows: Math.max(4, rows - 2), shape: 'circle', fill: 'primary', blur: 80, opacity: 0.3 }),
+        ...spines.flatMap(([h, f], k) => {
+          const tall = Math.min(h, rows - 1);
+          const top = rows - tall;
+          // Gilded bands near the head and foot of each spine.
+          const band: ColorRef = f === 'secondary' ? 'primary' : 'bg';
+          return [
+            deco({ col: c0 + k, row: top, span: 1, rows: tall, shape: 'rect', fill: f, radius: 4, opacity: 0.95 }),
+            deco({ col: c0 + k, row: top + 1, span: 1, rows: 1, shape: 'line', fill: band, opacity: 0.8, z: 1 }),
+            deco({ col: c0 + k, row: rows - 2, span: 1, rows: 1, shape: 'line', fill: band, opacity: 0.8, z: 1 }),
+          ];
+        }),
+        deco({ col: c0, row: rows, span: 5, rows: 1, shape: 'line', fill: 'primary', opacity: 0.9 }),
+      ];
+    }
     default: return [];
   }
 }
@@ -116,10 +154,10 @@ export function cardsComp(c: { eyebrow?: string; title: string; items: { icon: s
       ...c.items.slice(0, n).flatMap((it, k) => {
         const col = 1 + k * span;
         return [
-          E('shape', { col, span, row: cardRow, rows: 6, shape: 'rect', fill: c.cardFill ?? 'surface', radius: 18, z: 0 }),
-          E('icon', { col: col, span: 1, row: cardRow + 1, rows: 1, icon: it.icon, color: 'primary', z: 1 }),
-          E('heading', { col, span, row: cardRow + 2, rows: 1, text: it.title, size: 'lg', z: 1, level: 3 }),
-          E('text', { col, span, row: cardRow + 3, rows: 3, text: it.text, size: 'sm', z: 1 }),
+          E('shape', { col, span, row: cardRow, rows: 6, shape: 'rect', fill: c.cardFill ?? 'surface', radius: 18, z: 0, group: `card-${k}` }),
+          E('icon', { col: col, span: 1, row: cardRow + 1, rows: 1, icon: it.icon, color: 'primary', z: 1, group: `card-${k}` }),
+          E('heading', { col, span, row: cardRow + 2, rows: 1, text: it.title, size: 'lg', z: 1, level: 3, group: `card-${k}` }),
+          E('text', { col, span, row: cardRow + 3, rows: 3, text: it.text, size: 'sm', z: 1, group: `card-${k}` }),
         ];
       }),
     ],
@@ -149,22 +187,24 @@ export function statsComp(items: { value: string; label: string }[]): Compositio
   return {
     rows: 3,
     elements: items.slice(0, n).flatMap((it, k) => [
-      E('heading', { col: 1 + k * span, span, row: 1, rows: 2, text: it.value, size: 'xl', color: 'primary', align: 'center', level: 3 }),
-      E('text', { col: 1 + k * span, span, row: 3, rows: 1, text: it.label, size: 'sm', align: 'center' }),
+      E('heading', { col: 1 + k * span, span, row: 1, rows: 2, text: it.value, size: 'xl', color: 'primary', align: 'center', level: 3, group: `stat-${k}` }),
+      E('text', { col: 1 + k * span, span, row: 3, rows: 1, text: it.label, size: 'sm', align: 'center', group: `stat-${k}` }),
     ]),
   };
 }
 
-export function ctaComp(c: { title: string; text: string; button: string; deco?: Deco }): Composition {
+/** Closing call to action on a colored panel. `fill`/`ink` let light panels (e.g. a yellow block) use dark text. */
+export function ctaComp(c: { title: string; text: string; button: string; deco?: Deco; fill?: ColorRef; ink?: ColorRef; radius?: number }): Composition {
   const rows = 8;
+  const ink = c.ink ?? 'white';
   return {
     rows,
     elements: [
-      E('shape', { col: 1, span: 12, row: 1, rows, shape: 'rect', fill: 'gradient', radius: 28, z: 0 }),
+      E('shape', { col: 1, span: 12, row: 1, rows, shape: 'rect', fill: c.fill ?? 'gradient', radius: c.radius ?? 28, z: 0 }),
       ...decoration(c.deco ?? 'none', rows, 'right').slice(0, 1).map((d) => ({ ...d, z: 1, opacity: 0.35 })),
-      E('heading', { col: 2, span: 8, row: 2, rows: 2, text: c.title, size: 'xl', color: 'white', z: 2 }),
-      E('text', { col: 2, span: 7, row: 4, rows: 2, text: c.text, color: 'white', opacity: 0.88, z: 2 }),
-      E('button', { col: 2, span: 3, row: 6, text: c.button, href: '#', variant: 'secondary', color: 'white', z: 2 }),
+      E('heading', { col: 2, span: 8, row: 2, rows: 2, text: c.title, size: 'xl', color: ink, z: 2 }),
+      E('text', { col: 2, span: 7, row: 4, rows: 2, text: c.text, color: ink, opacity: 0.88, z: 2 }),
+      E('button', { col: 2, span: 3, row: 6, text: c.button, href: '#', variant: 'secondary', color: ink, z: 2 }),
     ],
   };
 }
@@ -192,6 +232,35 @@ export function quoteComp(c: { quote: string; author: string }): Composition {
   };
 }
 
+/**
+ * Numbered index (chapters, floors, stops): header on top, then one row per entry
+ * (numeral · title · description) separated by rules. Every entry lives on its own
+ * grid row, so the phone reading order stays numeral → title → description.
+ */
+export function listComp(c: { eyebrow?: string; title: string; text?: string; items: { title: string; text: string }[]; numerals?: 'roman' | 'arabic' }): Composition {
+  const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+  const items = c.items.slice(0, 10);
+  const top = c.eyebrow ? 2 : 1;
+  const start = top + (c.text ? 3 : 2) + 1;
+  return {
+    rows: start + items.length * 2 - 2,
+    elements: [
+      ...(c.eyebrow ? [E('text', { col: 1, span: 6, row: 1, rows: 1, text: c.eyebrow, size: 'xs', color: 'primary', upper: true })] : []),
+      E('heading', { col: 1, span: 8, row: top, rows: 2, text: c.title, size: 'xl' }),
+      ...(c.text ? [E('text', { col: 1, span: 6, row: top + 2, rows: 1, text: c.text, size: 'sm', color: 'muted' })] : []),
+      ...items.flatMap((it, k) => {
+        const row = start + k * 2;
+        return [
+          E('heading', { col: 1, span: 1, row, rows: 1, text: c.numerals === 'arabic' ? String(k + 1).padStart(2, '0') : roman[k], size: 'lg', color: 'primary', level: 3 }),
+          E('heading', { col: 2, span: 5, row, rows: 1, text: it.title, size: 'lg', level: 3 }),
+          E('text', { col: 7, span: 6, row, rows: 1, text: it.text, size: 'sm' }),
+          ...(k < items.length - 1 ? [E('divider', { col: 1, span: 12, row: row + 1, rows: 1, color: 'border' })] : []),
+        ];
+      }),
+    ],
+  };
+}
+
 /** Presets offered in the Canvas "Adicionar seção" list. */
 export const SECTION_PRESETS: { id: string; label: string; build: () => Composition }[] = [
   { id: 'blank', label: 'Em branco', build: () => ({ rows: 8, elements: [] }) },
@@ -201,6 +270,7 @@ export const SECTION_PRESETS: { id: string; label: string; build: () => Composit
   { id: 'split', label: 'Imagem + texto', build: () => splitComp({ eyebrow: 'Sobre', title: 'Uma história *que vale contar*', text: 'Conte de onde você veio e para onde vai.', button: 'Conheça' }) },
   { id: 'stats', label: 'Números', build: () => statsComp([{ value: '12k', label: 'clientes' }, { value: '98%', label: 'satisfação' }, { value: '24/7', label: 'suporte' }, { value: '3x', label: 'mais rápido' }]) },
   { id: 'gallery', label: 'Galeria', build: () => galleryComp({ title: 'Destaques', captions: ['Destaque principal', 'Detalhe', 'Bastidores'] }) },
+  { id: 'list', label: 'Lista numerada', build: () => listComp({ eyebrow: 'Sumário', title: 'Capítulos da *história*', items: [{ title: 'O começo', text: 'De onde tudo partiu.' }, { title: 'A virada', text: 'O momento que mudou o rumo.' }, { title: 'O agora', text: 'Onde estamos e para onde vamos.' }] }) },
   { id: 'quote', label: 'Citação', build: () => quoteComp({ quote: 'Uma frase marcante de um cliente ou da marca.', author: 'Nome — Cargo' }) },
   { id: 'cta', label: 'Chamada final', build: () => ctaComp({ title: 'Pronto para começar?', text: 'Uma última frase para convencer.', button: 'Falar com a gente' }) },
 ];

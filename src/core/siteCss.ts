@@ -113,8 +113,8 @@ function rawSiteCSS(t: Theme): string {
   const h3 = +(b * s ** 1.5).toFixed(1);
   const serifHeading = /Serif|Playfair|Fraunces|Cormorant|Lora|Gloock|Cinzel/.test(t.fontHeading);
   // Display faces that ship one weight must not be faux-bolded.
-  const singleWeight = /Archivo Black|Bebas Neue|Gloock|Young Serif|Instrument Serif|DM Serif Display|Press Start 2P|Share Tech Mono|Righteous/.test(t.fontHeading);
-  const condensed = /Bebas Neue/.test(t.fontHeading);
+  const singleWeight = /Archivo Black|Bebas Neue|Gloock|Young Serif|Instrument Serif|DM Serif Display|Press Start 2P|Share Tech Mono|Righteous|Marcellus/.test(t.fontHeading);
+  const condensed = /Bebas Neue|Oswald/.test(t.fontHeading);
   const hWeight = singleWeight ? 400 : serifHeading ? 500 : 700;
   const h1Track = condensed ? '0.005em' : serifHeading ? '-0.01em' : '-0.035em';
   const h2Track = condensed ? '0.01em' : serifHeading ? '-0.005em' : '-0.025em';
@@ -227,7 +227,7 @@ ${t.shadow === 'hard' ? `/* Neo-brutalism: thick outlines + hard offset shadows 
 .fw-media{position:relative;border-radius:var(--fw-radius-lg);overflow:hidden;aspect-ratio:4/3;background:
   radial-gradient(80% 60% at 20% 20%,${alpha(t.palette.primary, 0.55)},transparent 60%),
   radial-gradient(70% 60% at 80% 80%,${alpha(t.palette.secondary, 0.5)},transparent 60%),
-  linear-gradient(135deg,var(--fw-surface),${alpha(t.palette.accent, 0.25)});
+  linear-gradient(135deg,var(--fw-surface),${alpha(t.palette.accent, 0.25)}),var(--fw-surface);
   box-shadow:var(--fw-shadow-lg);border:1px solid var(--fw-border)}
 .fw-media img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .fw-media-grid{position:absolute;inset:0;background-image:linear-gradient(${alpha(t.palette.text, 0.06)} 1px,transparent 1px),linear-gradient(90deg,${alpha(t.palette.text, 0.06)} 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(circle at center,#000 30%,transparent 80%)}
@@ -411,10 +411,11 @@ textarea.fw-input{min-height:130px;resize:vertical}
 }
 @container site (max-width: 768px){
   .fw-canvas{grid-template-columns:1fr;grid-template-rows:none!important;row-gap:16px}
-  .fw-el{grid-column:1!important;grid-row:auto!important;order:var(--fw-mo)}
+  .fw-el{grid-column:1!important;grid-row:var(--fw-mr,auto)!important;margin:var(--fw-mt,0) var(--fw-mx,0) var(--fw-mb,0)}
   .fw-el-mhide{display:none}
-  .fw-el-image,.fw-el-shape{min-height:calc(var(--fw-rs,4) * var(--fw-rh,40px) * .7)}
+  .fw-el-image,.fw-el-shape{min-height:var(--fw-mmin,calc(var(--fw-rs,4) * var(--fw-rh,40px) * .7))}
   .fw-el-button,.fw-el-badge{justify-self:start}
+  .fw-el-icon{place-items:center start}
   .fw-cols-2,.fw-cols-3,.fw-split,.fw-feature-list,.fw-bento{grid-template-columns:1fr}
   .fw-bento .fw-card{grid-column:auto!important}
   .fw-split.fw-reverse>:first-child{order:0}

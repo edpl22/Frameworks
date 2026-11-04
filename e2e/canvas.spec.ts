@@ -112,4 +112,15 @@ test.describe('canvas mode', () => {
     await page.getByRole('button', { name: /Gerar prompt/ }).click();
     await expect(page.locator('.prompt-preview pre')).toContainText('Composição (grade livre)');
   });
+
+  test('applies the game-inspired templates', async ({ page }) => {
+    const errors = await openCanvas(page);
+    await page.locator('.cv-rail button[aria-label="Templates"]').click();
+    for (const [name, project, font] of [['Neon Mercenário', 'CROMO//CLÍNICA', 'Chakra Petch'], ['Expedição Carmesim', 'LINHA 12', 'Oswald'], ['Biblioteca dos Dez Andares', 'Biblioteca dos Dez Andares', 'Marcellus']]) {
+      await tpl(page, name).click();
+      await expect(page.locator('.project-name').first()).toHaveValue(project);
+      await waitForSave(page, (p) => p.theme.fontHeading === font && canvasSections(p).length >= 4);
+    }
+    expect(errors).toEqual([]);
+  });
 });

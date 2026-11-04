@@ -65,6 +65,15 @@ test.describe('studio', () => {
     await expect(page.locator('.fw-nav-links').first()).toBeHidden();
   });
 
+  test('full preview shows the page at full width', async ({ page }) => {
+    await openStudio(page);
+    await page.getByRole('button', { name: 'Preview' }).click();
+    await expect(page.locator('.rpanel')).toBeHidden();
+    const wrap = (await page.locator('.canvas-wrap').boundingBox())!;
+    expect(wrap.width).toBeGreaterThan(800);
+    await expect(page.locator('.canvas-stage h1').first()).toBeInViewport();
+  });
+
   test('generates a prompt with the project context', async ({ page }) => {
     await openStudio(page);
     await page.getByRole('button', { name: /Gerar prompt/ }).click();

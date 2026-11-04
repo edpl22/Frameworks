@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { canvasElements, canvasRows, clampEl, describeCanvas, newElement, readingOrder, GRID_COLS, type CanvasEl } from './canvas';
-import { SECTION_PRESETS } from './canvasKit';
+import { canvasElements, canvasRows, clampEl, describeCanvas, mobileLayout, newElement, readingOrder, regroup, GRID_COLS, type CanvasEl } from './canvas';
+import { cardsComp, ctaComp, SECTION_PRESETS, statsComp } from './canvasKit';
+import { THEME_PRESETS } from './theme';
 import { createSection } from './factory';
 import { createDefaultProject, projectFromTemplate, TEMPLATES } from './templates';
 import { exportPageHTML, renderPageMarkup } from './exporters';
@@ -94,6 +95,48 @@ describe('free-form rendering, prompt and audit', () => {
     for (const t of TEMPLATES.filter((x) => x.mode === 'canvas')) {
       const issues = auditProject(projectFromTemplate(t)).issues.map((i) => i.id);
       expect(issues.some((id) => id.startsWith('h1-')), t.id).toBe(false);
+    }
+  });
+
+  it('keeps cards, stats and panels together when stacking on phones', () => {
+    const cards = cardsComp({ title: 'T', items: [{ icon: 'zap', title: 'A', text: 'a' }, { icon: 'zap', title: 'B', text: 'b' }] }).elements;
+    const m = mobileLayout(cards);
+    const rowOf = (pred: (e: CanvasEl) => boolean) => cards.filter(pred).map((e) => m.get(e.id)!.row);
+    // Card A's icon, title and text come before anything from card B.
+    const a = rowOf((e) => e.group === 'card-0' && e.kind !== 'shape');
+    const b = rowOf((e) => e.group === 'card-1' && e.kind !== 'shape');
+    expect(Math.max(...a)).toBeLessThan(Math.min(...b));
+    // The card background spans exactly its own content rows.
+    const bg = m.get(cards.find((e) => e.group === 'card-0' && e.kind === 'shape')!.id)!;
+    expect(bg.backdrop).toBe(true);
+    expect([bg.row, bg.row + bg.rows - 1]).toEqual([Math.min(...a), Math.max(...a)]);
+
+    const stats = statsComp([{ value: '1', label: 'um' }, { value: '2', label: 'dois' }]).elements;
+    const sm = mobileLayout(stats);
+    expect(stats.map((e) => e.text).sort((x, y) => sm.get(stats.find((e) => e.text === x)!.id)!.row - sm.get(stats.find((e) => e.text === y)!.id)!.row)).toEqual(['1', 'um', '2', 'dois']);
+
+    // Panels without explicit groups are detected by containment.
+    const cta = ctaComp({ title: 'X', text: 'y', button: 'Ir' }).elements;
+    const cm = mobileLayout(cta);
+    const panel = cm.get(cta.find((e) => e.kind === 'shape')!.id)!;
+    expect(panel).toMatchObject({ backdrop: true, row: 1, rows: 3 });
+  });
+
+  it('gives duplicated groups fresh names', () => {
+    const els = cardsComp({ title: 'T', items: [{ icon: 'zap', title: 'A', text: 'a' }] }).elements.filter((e) => e.group);
+    const copies = regroup(els);
+    expect(new Set(copies.map((e) => e.group)).size).toBe(1);
+    expect(copies[0].group).not.toBe('card-0');
+  });
+
+  it('ships the game-inspired templates with their own themes', () => {
+    for (const [id, preset] of [['neon-merc', 'neon-merc'], ['crimson-line', 'crimson'], ['ten-floors-library', 'library']]) {
+      const t = TEMPLATES.find((x) => x.id === id)!;
+      expect(t.preset).toBe(preset);
+      expect(THEME_PRESETS.some((p) => p.id === preset)).toBe(true);
+      const proj = projectFromTemplate(t);
+      const html = exportPageHTML(proj, proj.pages[0]);
+      expect(html).toContain('fw-canvas');
     }
   });
 });

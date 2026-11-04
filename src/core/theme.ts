@@ -37,6 +37,9 @@ export const FONT_PAIRS: FontPair[] = [
   { id: 'techmono', label: 'Share Tech Mono / Inter', heading: 'Share Tech Mono', body: 'Inter', vibe: 'Computação, terminal' },
   { id: 'fredoka', label: 'Fredoka / Nunito', heading: 'Fredoka', body: 'Nunito', vibe: 'Educação, infantil' },
   { id: 'pixel', label: 'Press Start 2P / Inter', heading: 'Press Start 2P', body: 'Inter', vibe: 'Games retrô, 8-bit' },
+  { id: 'chakra', label: 'Chakra Petch / Rajdhani', heading: 'Chakra Petch', body: 'Rajdhani', vibe: 'HUD, cyberpunk angular' },
+  { id: 'oswald', label: 'Oswald / Crimson Pro', heading: 'Oswald', body: 'Crimson Pro', vibe: 'Gótico literário, sombrio' },
+  { id: 'marcellus', label: 'Marcellus / EB Garamond', heading: 'Marcellus', body: 'EB Garamond', vibe: 'Biblioteca, art nouveau' },
   { id: 'righteous', label: 'Righteous / Inter', heading: 'Righteous', body: 'Inter', vibe: 'Música, festival' },
 ];
 
@@ -44,7 +47,7 @@ export const ALL_FONTS = Array.from(new Set(FONT_PAIRS.flatMap((p) => [p.heading
 
 // Families that ship a single weight. Requesting a weight axis for them makes
 // Google Fonts reject the whole stylesheet, so they are requested bare.
-const SINGLE_WEIGHT = new Set(['Archivo Black', 'Bebas Neue', 'Gloock', 'Young Serif', 'Press Start 2P', 'Share Tech Mono', 'Righteous']);
+const SINGLE_WEIGHT = new Set(['Archivo Black', 'Bebas Neue', 'Gloock', 'Young Serif', 'Press Start 2P', 'Share Tech Mono', 'Righteous', 'Marcellus']);
 const ITALIC_ONLY = new Set(['Instrument Serif', 'DM Serif Display']);
 
 export function googleFontFamily(f: string): string {
@@ -289,6 +292,30 @@ export const THEME_PRESETS: ThemePreset[] = [
     theme: {
       ...base, mode: 'light', fontHeading: 'Fraunces', fontBody: 'Nunito', radius: 24, shadow: 'soft', buttonStyle: 'pill', density: 'spacious',
       palette: { primary: '#2f6d3a', secondary: '#a3b18a', accent: '#e9a23b', background: '#f6f7f0', surface: '#e9edd9', text: '#1d2a1b', muted: '#5b6b55', border: '#d9dfc6' },
+    },
+  },
+  {
+    id: 'neon-merc',
+    label: 'Neon Mercenário',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Chakra Petch', fontBody: 'Rajdhani', radius: 0, shadow: 'hard', buttonStyle: 'solid', baseSize: 18,
+      palette: { primary: '#fcee0a', secondary: '#02d7f2', accent: '#ff003c', background: '#0a0b0e', surface: '#15171c', text: '#f1f1e6', muted: '#9ba1a9', border: '#2b2e35' },
+    },
+  },
+  {
+    id: 'crimson',
+    label: 'Carmesim',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Oswald', fontBody: 'Crimson Pro', radius: 2, shadow: 'dramatic', buttonStyle: 'solid', baseSize: 19, scale: 1.3,
+      palette: { primary: '#d4202f', secondary: '#6e0d17', accent: '#e6b450', background: '#0c0909', surface: '#181112', text: '#efe6dc', muted: '#a8968c', border: '#35211f' },
+    },
+  },
+  {
+    id: 'library',
+    label: 'Biblioteca',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Marcellus', fontBody: 'EB Garamond', radius: 8, shadow: 'medium', buttonStyle: 'solid', baseSize: 19, density: 'spacious',
+      palette: { primary: '#d9a441', secondary: '#2f6b5e', accent: '#e8c98a', background: '#140f0a', surface: '#1f1812', text: '#f1e4c8', muted: '#b9a47f', border: '#3b2e20' },
     },
   },
 ];

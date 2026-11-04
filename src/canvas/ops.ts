@@ -1,6 +1,6 @@
 import { useStore, activePage } from '../core/store';
 import { createSection } from '../core/factory';
-import { canvasElements, canvasRows, clampEl, elId, nextFreeRow, GRID_COLS, type CanvasEl } from '../core/canvas';
+import { canvasElements, canvasRows, clampEl, elId, nextFreeRow, regroup, GRID_COLS, type CanvasEl } from '../core/canvas';
 import { SECTION_PRESETS, toProps } from '../core/canvasKit';
 import type { PropValue, Section } from '../core/types';
 
@@ -93,7 +93,7 @@ export function duplicateSelected() {
   const s = sectionById(elSel.sectionId);
   if (!s || !elSel.ids.length) return;
   const set = new Set(elSel.ids);
-  const copies = canvasElements(s.props).filter((e) => set.has(e.id)).map((e) => ({ ...e, id: elId(), row: e.row + 1, col: Math.min(e.col + 1, GRID_COLS - e.span + 1), z: (e.z ?? 1) + 1 }));
+  const copies = regroup(canvasElements(s.props).filter((e) => set.has(e.id)).map((e) => ({ ...e, id: elId(), row: e.row + 1, col: Math.min(e.col + 1, GRID_COLS - e.span + 1), z: (e.z ?? 1) + 1 })));
   setElements(s.id, (els) => [...els, ...copies]);
   selectEls(s.id, copies.map((c) => c.id));
 }
@@ -114,7 +114,7 @@ export function pasteClipboard() {
   if (!s) return false;
   const top = Math.min(...clipboard.map((e) => e.row));
   const base = nextFreeRow(canvasElements(s.props));
-  const copies = clipboard.map((e) => ({ ...e, id: elId(), row: base + (e.row - top) }));
+  const copies = regroup(clipboard.map((e) => ({ ...e, id: elId(), row: base + (e.row - top) })));
   setElements(sectionId, (els) => [...els, ...copies]);
   selectEls(sectionId, copies.map((c) => c.id));
   return true;

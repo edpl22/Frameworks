@@ -1,6 +1,6 @@
 import type { Template, TemplatePage } from './templates';
 import type { Props, SectionStyle } from './types';
-import { cardsComp, ctaComp, galleryComp, heroComp, quoteComp, splitComp, statsComp, toProps, type Composition } from './canvasKit';
+import { cardsComp, ctaComp, galleryComp, heroComp, listComp, quoteComp, splitComp, statsComp, toProps, type Composition } from './canvasKit';
 
 // ════════════════════════════════════════════════════════════════
 //  Themed templates built from free-form sections (Canvas mode).
@@ -201,6 +201,91 @@ export const THEMED_TEMPLATES: Template[] = [
         canvas('Depoimento', quoteComp({ quote: 'Ver pelo mapa as árvores que plantamos crescendo virou um ritual da nossa equipe.', author: 'Marina Costa — Diretora de ESG, Lumen' }), { background: 'surface' }),
         canvas('Chamada', ctaComp({ title: 'Plante sua *primeira árvore*', text: 'A partir de R$ 19 por mês. Cancele quando quiser.', button: 'Quero apoiar', deco: 'leaves' })),
         footer('Reflorestamento com transparência.', [['Projetos', ['Mata Atlântica', 'Cerrado', 'Mapa']], ['Apoie', ['Pessoa física', 'Empresas', 'Presentear']], ['Transparência', ['Relatórios', 'Parceiros', 'Contato']]]),
+      ],
+    }],
+  },
+  {
+    id: 'neon-merc',
+    name: 'Neon Mercenário',
+    description: 'Clínica de implantes com amarelo elétrico, glitch e cantos retos',
+    category: 'Temáticos',
+    tags: ['Cyberpunk', 'HUD', 'Glitch', 'Dark mode', 'Canvas'],
+    preset: 'neon-merc',
+    mode: 'canvas',
+    brief: { projectName: 'CROMO//CLÍNICA', tagline: 'Implantes cibernéticos de grife', industry: 'Tecnologia / Ficção cyberpunk', tone: ['Ousado', 'Direto', 'Técnico'], audience: 'Fãs de ficção cyberpunk e jogadores de RPG que querem uma estética HUD agressiva.', goal: 'Agendar avaliações e vender pacotes de upgrade.' },
+    pages: [{
+      name: 'Início', slug: '/', sections: [
+        nav(['Implantes', 'Contratos', 'Garantia', 'Contato'], 'Agendar avaliação'),
+        canvas('Abertura', heroComp({ eyebrow: 'SYS://ONLINE', title: 'Seu corpo, *versão 2.0*', text: 'Implantes ópticos, reflexos sintéticos e braços sob medida. Instalação em uma tarde e garantia vitalícia de firmware.', primary: 'Agendar avaliação', secondary: 'Ver catálogo', image: true, deco: 'glitch' }), { background: 'default', paddingY: 'xl' }),
+        canvas('Catálogo', cardsComp({ eyebrow: 'Catálogo', title: 'Upgrades em *estoque*', items: [
+          { icon: 'eye', title: 'Óptica de combate', text: 'Zoom 20x, visão térmica e leitura de dados em tempo real.' },
+          { icon: 'activity', title: 'Reflexos sintéticos', text: 'Tempo de reação três vezes menor, calibrado ao seu sistema nervoso.' },
+          { icon: 'crosshair', title: 'Braço tático', text: 'Liga de titânio, ferramentas integradas e acabamento cromado.' },
+        ] })),
+        canvas('Números', statsComp([{ value: '0,3s', label: 'tempo de reação' }, { value: '12k', label: 'implantes instalados' }, { value: '99,7%', label: 'compatibilidade' }, { value: '24/7', label: 'suporte de campo' }]), { background: 'surface', paddingY: 'md' }),
+        canvas('Contratos', splitComp({ eyebrow: 'Contratos', title: 'Trabalho sujo, *preço limpo*', text: 'Pacotes para quem vive de contrato: instalação discreta, manutenção noturna e peças de reposição entregues onde você estiver.', button: 'Ver pacotes', imageLeft: true, deco: 'glitch' })),
+        canvas('Chamada', ctaComp({ title: 'Upgrade hoje. Pague em 12 ciclos.', text: 'Avaliação neural gratuita na primeira visita. Vagas limitadas por noite.', button: 'Agendar agora', fill: 'primary', ink: 'black', radius: 0 })),
+        footer('Implantes cibernéticos de grife.', [['Implantes', ['Óptica', 'Reflexos', 'Membros']], ['Clínica', ['Garantia', 'Financiamento', 'Unidades']], ['Contato', ['Emergência 24h', 'Parcerias', 'Imprensa']]]),
+      ],
+    }],
+  },
+  {
+    id: 'crimson-line',
+    name: 'Expedição Carmesim',
+    description: 'Teatro imersivo gótico em vermelho, preto e dourado',
+    category: 'Temáticos',
+    tags: ['Gótico', 'Literário', 'Sombrio', 'Dark mode', 'Canvas'],
+    preset: 'crimson',
+    mode: 'canvas',
+    brief: { projectName: 'LINHA 12', tagline: 'Uma viagem noturna por doze clássicos da literatura', industry: 'Teatro imersivo / Cultura', tone: ['Sombrio', 'Literário', 'Intenso'], audience: 'Adultos que gostam de teatro imersivo, literatura clássica e experiências noturnas.', goal: 'Vender assentos para as temporadas da expedição.' },
+    pages: [{
+      name: 'Início', slug: '/', sections: [
+        nav(['A viagem', 'Paradas', 'Regras', 'Temporadas'], 'Embarcar'),
+        canvas('Abertura', heroComp({ eyebrow: 'Partida às 23h', title: 'Doze clássicos. *Uma noite.*', text: 'Um ônibus atravessa a cidade adormecida e para em doze cenas de teatro imersivo. Cada parada é um livro; cada passageiro, um cúmplice.', primary: 'Reservar assento', secondary: 'Ver o trajeto', image: true, deco: 'crimson' }), { background: 'default', paddingY: 'xl' }),
+        canvas('Manifesto', quoteComp({ quote: 'Toda história cobra uma passagem. Nesta viagem, você paga com a sua coragem.', author: 'Diário de bordo — Temporada I' }), { background: 'surface', paddingY: 'lg' }),
+        canvas('Trajeto', listComp({ eyebrow: 'Trajeto', title: 'Paradas da *expedição*', text: 'Doze cenas inspiradas em obras em domínio público. Algumas delas:', items: [
+          { title: 'O Inferno', text: 'Nove círculos encenados em um túnel desativado.' },
+          { title: 'A Baleia Branca', text: 'Uma obsessão que cabe dentro de um galpão no porto.' },
+          { title: 'O Cavaleiro Sonhador', text: 'Moinhos, gigantes e a coragem de quem não desiste.' },
+          { title: 'O Pacto', text: 'Um contrato assinado à meia-noite, com tinta vermelha.' },
+          { title: 'Crime e Castigo', text: 'Um interrogatório em que o público decide o veredito.' },
+        ] })),
+        canvas('Regras', cardsComp({ eyebrow: 'Antes de embarcar', title: 'Regras da *viagem*', items: [
+          { icon: 'clock', title: 'Pontualidade', text: 'O ônibus parte às 23h em ponto. Ninguém volta para buscar.' },
+          { icon: 'flame', title: 'Coragem', text: 'Algumas cenas são intensas. Recomendado para maiores de 16 anos.' },
+          { icon: 'ticket', title: 'Bilhete nominal', text: 'Cada assento é numerado de 1 a 28 e não pode ser transferido.' },
+        ] })),
+        canvas('Números', statsComp([{ value: '12', label: 'paradas' }, { value: '5h', label: 'de viagem' }, { value: '28', label: 'passageiros por noite' }, { value: '1', label: 'motorista silencioso' }]), { background: 'surface', paddingY: 'md' }),
+        canvas('Chamada', ctaComp({ title: 'O próximo ônibus parte em breve', text: 'Temporada II com assentos limitados. Embarque se tiver coragem.', button: 'Reservar assento', deco: 'crimson', radius: 2 })),
+        footer('Uma viagem noturna por doze clássicos da literatura.', [['Expedição', ['Trajeto', 'Temporadas', 'Elenco']], ['Passageiros', ['Regras', 'Acessibilidade', 'Reembolso']], ['Contato', ['Imprensa', 'Grupos', 'Instagram']]]),
+      ],
+    }],
+  },
+  {
+    id: 'ten-floors-library',
+    name: 'Biblioteca dos Dez Andares',
+    description: 'Livraria-café em dourado e sépia, com estantes e serifas clássicas',
+    category: 'Temáticos',
+    tags: ['Biblioteca', 'Serifado', 'Art nouveau', 'Dark mode', 'Canvas'],
+    preset: 'library',
+    mode: 'canvas',
+    brief: { projectName: 'Biblioteca dos Dez Andares', tagline: 'Livraria, café e salão de leitura', industry: 'Livraria / Cultura', tone: ['Acolhedor', 'Erudito', 'Misterioso'], audience: 'Leitores, estudantes e curiosos que procuram um lugar para ler, estudar e participar de encontros.', goal: 'Atrair visitantes e distribuir convites para os encontros de sexta.' },
+    pages: [{
+      name: 'Início', slug: '/', sections: [
+        nav(['Andares', 'Convites', 'Acervo', 'Visite'], 'Pedir convite'),
+        canvas('Abertura', heroComp({ eyebrow: 'Aberta até a meia-noite', title: 'Todo saber tem *o seu andar*', text: 'Dez andares de livros, cada um dedicado a uma área do conhecimento. Suba, escolha uma mesa e fique o quanto quiser.', primary: 'Pedir um convite', secondary: 'Conhecer os andares', deco: 'shelves' }), { background: 'default', paddingY: 'xl' }),
+        canvas('Andares', listComp({ eyebrow: 'Os andares', title: 'Do térreo à *cobertura*', text: 'Cada andar tem seu curador, seu silêncio e sua trilha de leituras.', items: [
+          { title: 'História', text: 'Mapas antigos, crônicas e biografias.' },
+          { title: 'Ciências', text: 'Do átomo às estrelas, com bancada de experimentos.' },
+          { title: 'Literatura', text: 'Romances, poesia e uma sala só para contos.' },
+          { title: 'Arte', text: 'Livros de arte, partituras e uma galeria rotativa.' },
+          { title: 'Filosofia', text: 'Poltronas fundas e perguntas sem pressa.' },
+        ] })),
+        canvas('Convites', splitComp({ eyebrow: 'Convites', title: 'Toda sexta, *um convite*', text: 'Lançamentos, leituras em voz alta e debates com autores. Cada convite chega em envelope lacrado, com um livro escolhido para você.', button: 'Quero receber', imageLeft: true, deco: 'shelves' }), { background: 'surface' }),
+        canvas('Inscrição', quoteComp({ quote: 'Um livro aberto é uma porta; uma biblioteca é uma cidade inteira.', author: 'Inscrição na entrada do térreo' })),
+        canvas('Acervo', galleryComp({ title: 'O *acervo*', captions: ['Salão de leitura do quinto andar', 'Estante de livros raros', 'Café do térreo'] })),
+        canvas('Chamada', ctaComp({ title: 'Sua mesa *está reservada*', text: 'Peça seu convite e receba um livro escolhido pelos curadores.', button: 'Pedir convite', fill: 'secondary', radius: 12, deco: 'orbs' })),
+        footer('Livraria, café e salão de leitura.', [['Biblioteca', ['Andares', 'Acervo', 'Curadores']], ['Visite', ['Horários', 'Café', 'Acessibilidade']], ['Convites', ['Agenda', 'Clube de leitura', 'Contato']]]),
       ],
     }],
   },

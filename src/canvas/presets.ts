@@ -21,7 +21,7 @@ export const BUTTON_PRESETS: { key: string; label: string; make: () => CanvasEl 
   { key: 'ghost', label: 'Discreto', make: () => newElement('button', { variant: 'ghost', text: 'Ver detalhes →' }) },
 ];
 
-export const ICON_PICKS = ['sparkles', 'zap', 'rocket', 'shield', 'heart', 'star', 'globe', 'cpu', 'code', 'palette', 'camera', 'leaf', 'gem', 'award', 'target', 'wand', 'users', 'chart', 'clock', 'coffee', 'box', 'layers', 'cloud', 'database'];
+export const ICON_PICKS = ['sparkles', 'zap', 'rocket', 'shield', 'heart', 'star', 'globe', 'cpu', 'code', 'palette', 'camera', 'leaf', 'gem', 'award', 'target', 'wand', 'users', 'chart', 'clock', 'coffee', 'box', 'layers', 'cloud', 'database', 'eye', 'book', 'feather', 'key', 'flame', 'moon', 'hourglass', 'crosshair', 'activity', 'bus', 'scroll', 'ticket'];
 
 export function elementFromKey(key: string): CanvasEl | null {
   const [kind, arg] = key.split(':');
