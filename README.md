@@ -42,6 +42,7 @@ npm run dev            # http://localhost:5173  (landing → "Abrir Studio")
 | `npm run dev` | Servidor de desenvolvimento (Vite) |
 | `npm run build` | Typecheck + build de produção em `dist/` |
 | `npm test` | Testes unitários (Vitest) |
+| `npm run test:e2e` | Testes end-to-end no navegador (Playwright, contra o build de produção) |
 | `npm run desktop:dev` | App desktop com hot reload |
 | `npm run desktop:build` | Gera instaladores em `release/` (dmg/zip, nsis/portable, AppImage/deb) |
 | `npm run desktop:dir` | Build desktop descompactado (rápido, para testes) |
@@ -65,6 +66,17 @@ Electron com `contextIsolation`, `sandbox` e sem `nodeIntegration`. O renderer s
 - título da janela com indicador de alterações não salvas
 
 > Em ambientes de CI sem acesso ao download do binário do Electron, use `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install`.
+
+Smoke test do app empacotado (Linux): `FW_SMOKE_TEST=1 xvfb-run -a release/linux-unpacked/frameworks-studio --no-sandbox`. O app abre, confere se o Studio renderizou, se a bridge desktop existe e se nenhuma API do Node vazou para o renderer, e sai com código 0 ou 1.
+
+### CI
+
+O GitHub Actions roda quatro jobs:
+
+- **Testes & build:** Vitest, typecheck e build
+- **E2E:** Playwright cobrindo edição inline, drag-and-drop, templates, prompt, importação do Figma, upload de imagens e exportação ZIP
+- **Docker:** build da imagem e smoke test do container
+- **Desktop:** empacotamento com electron-builder e smoke test do app sob Xvfb
 
 ## Do design ao código
 

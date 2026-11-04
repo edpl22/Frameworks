@@ -9,11 +9,21 @@ import { openProjectFile, saveProject } from './fileOps';
 
 interface Cmd { id: string; group: string; label: string; icon: ReactNode; shortcut?: string; keywords?: string; run: () => void }
 
-function score(q: string, text: string): number {
+const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+export function score(query: string, text: string): number {
+  const q = fold(query.trim());
   if (!q) return 1;
-  const t = text.toLowerCase();
-  if (t.includes(q)) return 2 + (t.startsWith(q) ? 1 : 0);
-  // subsequence fuzzy match
+  const t = fold(text);
+  if (t.includes(q)) return 4 + (t.startsWith(q) ? 1 : 0);
+  // every word present, in any order ("preset neo" → "Aplicar preset: Neo-brutal")
+  const words = q.split(/\s+/);
+  if (words.every((w) => t.includes(w))) {
+    // whole-word hits rank above prefix hits ("neo" → Neo-brutal before Neon)
+    const tokens = new Set(t.split(/[^a-z0-9]+/));
+    return 3 + words.filter((w) => tokens.has(w)).length / 10;
+  }
+  // subsequence fuzzy match ("gprm" → "Gerar prompt")
   let i = 0;
   for (const c of t) if (c === q[i]) i++;
   return i === q.length ? 1 : 0;
@@ -59,7 +69,7 @@ export function CommandPalette() {
   }, [st.project, st.activePageId]);
 
   const results = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const term = q.trim();
     return cmds
       .map((c) => ({ c, sc: score(term, `${c.label} ${c.group} ${c.keywords ?? ''}`) }))
       .filter((r) => r.sc > 0)

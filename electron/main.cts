@@ -30,6 +30,7 @@ function createWindow() {
   });
 
   win.once('ready-to-show', () => win?.show());
+  if (process.env.FW_SMOKE_TEST) smokeTest(win);
 
   // Open external links in the user's browser, never inside the app.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -42,6 +43,44 @@ function createWindow() {
   } else {
     win.loadFile(join(__dirname, '../dist/index.html'), { hash: '/studio' });
   }
+}
+
+/**
+ * CI smoke test (FW_SMOKE_TEST=1): waits for the renderer to boot the studio,
+ * prints what it found and exits 0, or exits 1 on load failure/timeout.
+ */
+function smokeTest(w: BrowserWindow) {
+  const fail = (why: string) => { console.error(`[smoke] FAIL: ${why}`); app.exit(1); };
+  const timer = setTimeout(() => fail('timeout waiting for the studio'), 45_000);
+  w.webContents.on('did-fail-load', (_e, code, desc) => fail(`did-fail-load ${code} ${desc}`));
+  w.webContents.on('render-process-gone', (_e, d) => fail(`renderer gone: ${d.reason}`));
+  w.webContents.once('did-finish-load', async () => {
+    try {
+      const result = await w.webContents.executeJavaScript(`new Promise((resolve) => {
+        const started = Date.now();
+        const check = () => {
+          const ok = document.querySelector('.studio') && document.querySelectorAll('.fw-site > .cs').length > 0;
+          if (ok || Date.now() - started > 30000) resolve({
+            studio: !!document.querySelector('.studio'),
+            sections: document.querySelectorAll('.fw-site > .cs').length,
+            bridge: !!(window.fwDesktop && window.fwDesktop.isDesktop),
+            nodeExposed: typeof window.require !== 'undefined' || typeof window.process !== 'undefined',
+          });
+          else setTimeout(check, 200);
+        };
+        check();
+      })`);
+      clearTimeout(timer);
+      console.log('[smoke]', JSON.stringify(result));
+      if (!result.studio || result.sections === 0) return fail('studio did not render');
+      if (!result.bridge) return fail('desktop bridge missing');
+      if (result.nodeExposed) return fail('Node APIs leaked into the renderer');
+      console.log('[smoke] OK');
+      app.exit(0);
+    } catch (e) {
+      fail(String(e));
+    }
+  });
 }
 
 function buildMenu() {

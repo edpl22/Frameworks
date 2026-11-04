@@ -58,4 +58,3 @@ Seções ocultas são omitidas.
 - Seções customizadas pelo usuário (blocos HTML livres)
 - Colaboração em tempo real (CRDT / Yjs)
 - Envio direto para o Claude Code via CLI a partir do app desktop
-- Testes E2E com Playwright no CI

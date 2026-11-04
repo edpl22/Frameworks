@@ -126,7 +126,8 @@ export function Landing() {
           </div>
 
           {/* Product shot */}
-          <div className="lp-shot" data-reveal>
+          {/* Decorative product shot: hidden from assistive tech and the tab order (it contains a full demo site). */}
+          <div className="lp-shot" data-reveal aria-hidden="true" inert>
             <div className="lp-shot-glow" />
             <div className="lp-shot-frame">
               <div className="lp-shot-bar"><i /><i /><i /><span>Frameworks Studio — Aurora</span></div>
