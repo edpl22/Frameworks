@@ -111,6 +111,8 @@ export interface Project {
   pages: Page[];
   /** Design tokens imported from Figma (original names are forwarded to the prompt). */
   figma?: import('./tokensImport').FigmaImport;
+  /** Metadata of uploaded images (binaries live in IndexedDB, keyed by id). */
+  assets?: Record<string, import('./assets').AssetMeta>;
 }
 
 // ─── Schema used to auto-generate the inspector ────────────────

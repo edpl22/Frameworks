@@ -3,6 +3,7 @@ import { SECTION_MAP } from './sections';
 import { contrastRatio, tonalScale, wcagLevel } from './color';
 import { anchorId } from './render/SiteSection';
 import { FORMAT_LABEL, figmaTokensCss, tokenCount } from './tokensImport';
+import { assetIdOf, assetPath, collectAssetIds, isAssetRef } from './assets';
 
 export interface PromptOptions {
   detail: 'concise' | 'standard' | 'exhaustive';
@@ -187,7 +188,35 @@ function contrastReport(p: Project, o: PromptOptions): string {
   ].join('\n');
 }
 
-export function generatePrompt(p: Project, o: PromptOptions = DEFAULT_PROMPT_OPTIONS): string {
+/** Replaces `asset:` refs with the file path + description Claude Code will see in the bundle. */
+function withAssetPaths(p: Project): Project {
+  if (!p.assets || !Object.keys(p.assets).length) return p;
+  const map = (v: unknown): unknown => {
+    if (isAssetRef(v)) {
+      const m = p.assets?.[assetIdOf(v)];
+      return m ? `${assetPath(m)} (${m.name}, ${m.width}×${m.height})` : '';
+    }
+    if (Array.isArray(v)) return v.map(map);
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, map(x)]));
+    return v;
+  };
+  return { ...p, pages: map(p.pages) as Page[] };
+}
+
+function assetsBlock(p: Project, o: PromptOptions): string {
+  const used = collectAssetIds(p).map((id) => p.assets?.[id]).filter((m): m is NonNullable<typeof m> => !!m);
+  if (!used.length) return '';
+  return [
+    `### ${L(o, 'Imagens fornecidas', 'Provided images')}`,
+    L(o,
+      'As imagens abaixo foram enviadas no Studio e estão no pacote exportado. Copie-as para a pasta de arquivos públicos do projeto (ex.: `public/images/`), use o componente de imagem otimizada da stack, com `width`/`height` explícitos e `alt` descritivo, e carregue com prioridade apenas a imagem do hero.',
+      'The images below were uploaded in the Studio and ship in the exported bundle. Copy them to the project’s public folder (e.g. `public/images/`), use the stack’s optimized image component with explicit `width`/`height` and descriptive `alt`, and only prioritise the hero image.'),
+    used.map((m) => `- \`${assetPath(m)}\` — ${m.name} · ${m.width}×${m.height}`).join('\n'),
+  ].join('\n\n');
+}
+
+export function generatePrompt(project: Project, o: PromptOptions = DEFAULT_PROMPT_OPTIONS): string {
+  const p = withAssetPaths(project);
   const b = p.brief;
   const t = p.theme;
   const stack = STACKS[b.stack];
@@ -230,6 +259,8 @@ export function generatePrompt(p: Project, o: PromptOptions = DEFAULT_PROMPT_OPT
   out.push(`## 4. ${L(o, 'Arquitetura de páginas e seções', 'Pages & sections')}`);
   if (p.pages.length > 1) out.push(`${L(o, 'O site possui', 'The site has')} ${p.pages.length} ${L(o, 'páginas', 'pages')}: ${p.pages.map((pg) => `${pg.name} (\`${pg.slug}\`)`).join(', ')}. ${L(o, 'Navbar e rodapé devem ser componentes compartilhados no layout.', 'Navbar and footer must be shared layout components.')}`);
   out.push(p.pages.map((pg) => pageSpec(pg, o)).join('\n\n'));
+  const imgs = assetsBlock(project, o);
+  if (imgs) out.push(imgs);
 
   out.push(`## 5. ${L(o, 'Requisitos funcionais', 'Functional requirements')}`);
   const req = [

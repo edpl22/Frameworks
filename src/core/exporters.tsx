@@ -1,5 +1,4 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import JSZip from 'jszip';
 import type { Page, Project } from './types';
 import { RenderContext } from './render/editable';
 import { SiteSection } from './render/SiteSection';
@@ -7,6 +6,7 @@ import { cssVariables, generateSiteCSS } from './siteCss';
 import { googleFontsHref } from './theme';
 import { tonalScale } from './color';
 import { figmaTokensCss } from './tokensImport';
+import { assetIdOf, assetPath, blobToDataUrl } from './assets';
 import { generatePrompt, DEFAULT_PROMPT_OPTIONS, type PromptOptions } from './prompt';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -17,9 +17,26 @@ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isInter
 els.forEach(function(e){io.observe(e)});
 var b=r.querySelector('.fw-burger'),n=r.querySelector('.fw-nav-links');if(b&&n){b.addEventListener('click',function(){var o=n.style.display==='flex';n.style.cssText=o?'':'display:flex;flex-direction:column;position:absolute;top:68px;left:0;right:0;padding:20px;background:var(--fw-bg);border-bottom:1px solid var(--fw-border);gap:16px'})}})();`;
 
-export function renderPageMarkup(page: Page): string {
+export type AssetResolver = (src: string) => string | undefined;
+
+/** Default for exports: uploaded images point to `./assets/img/<id>.<ext>` next to the HTML. */
+export function relativeAssetResolver(project: Project): AssetResolver {
+  return (src) => {
+    const m = project.assets?.[assetIdOf(src)];
+    return m ? './' + assetPath(m) : undefined;
+  };
+}
+
+/** Inlines uploaded images as data URLs (single-file HTML export). */
+export async function dataUrlAssetResolver(blobs: Map<string, Blob>): Promise<AssetResolver> {
+  const urls = new Map<string, string>();
+  for (const [id, b] of blobs) urls.set(id, await blobToDataUrl(b));
+  return (src) => urls.get(assetIdOf(src));
+}
+
+export function renderPageMarkup(page: Page, resolveAsset?: AssetResolver): string {
   return renderToStaticMarkup(
-    <RenderContext.Provider value={{ editable: false }}>
+    <RenderContext.Provider value={{ editable: false, resolveAsset }}>
       <div className="fw-site">
         {page.sections.filter((s) => !s.hidden).map((s) => <SiteSection key={s.id} s={s} revealed={false} />)}
       </div>
@@ -31,9 +48,9 @@ export function pageFileName(page: Page): string {
   return page.slug === '/' ? 'index.html' : `${page.slug.replace(/^\//, '').replace(/\//g, '-') || 'page'}.html`;
 }
 
-export function exportPageHTML(project: Project, page: Page, opts: { inlineCss?: boolean } = { inlineCss: true }): string {
+export function exportPageHTML(project: Project, page: Page, opts: { inlineCss?: boolean; resolveAsset?: AssetResolver } = { inlineCss: true }): string {
   const t = project.theme;
-  const body = renderPageMarkup(page)
+  const body = renderPageMarkup(page, opts.resolveAsset ?? relativeAssetResolver(project))
     // Rewrite internal page links to file names in the static export.
     .replace(/href="(\/[a-z0-9-/]*)"/g, (m, slug) => {
       const target = project.pages.find((p) => p.slug === slug);
@@ -126,15 +143,34 @@ export function projectJSON(project: Project): string {
   return JSON.stringify({ $schema: 'frameworks-studio/project@1', ...project }, null, 2);
 }
 
-export function parseProject(text: string): Project {
-  const data = JSON.parse(text);
-  if (!data || !Array.isArray(data.pages) || !data.theme || !data.brief) throw new Error('Arquivo de projeto inválido');
-  delete data.$schema;
-  return data as Project;
+/** Project file with the used images embedded, so it opens on any machine. */
+export async function portableProjectJSON(project: Project, blobs: Map<string, Blob>): Promise<string> {
+  const assetData: Record<string, string> = {};
+  for (const [id, b] of blobs) assetData[id] = await blobToDataUrl(b);
+  return JSON.stringify({ $schema: 'frameworks-studio/project@1', ...project, $assetData: assetData }, null, 2);
 }
 
-export async function exportZip(project: Project, promptOptions: PromptOptions = DEFAULT_PROMPT_OPTIONS): Promise<Blob> {
+export function parseProject(text: string): Project {
+  return parseProjectFile(text).project;
+}
+
+export function parseProjectFile(text: string): { project: Project; assetData: Record<string, string> } {
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error('Arquivo de projeto inválido'); }
+  if (!data || !Array.isArray(data.pages) || !data.theme || !data.brief) throw new Error('Arquivo de projeto inválido');
+  const assetData = (data.$assetData ?? {}) as Record<string, string>;
+  delete data.$schema;
+  delete data.$assetData;
+  return { project: data as Project, assetData };
+}
+
+export async function exportZip(project: Project, promptOptions: PromptOptions = DEFAULT_PROMPT_OPTIONS, blobs: Map<string, Blob> = new Map()): Promise<Blob> {
+  const { default: JSZip } = await import('jszip'); // only needed when exporting
   const zip = new JSZip();
+  for (const [id, blob] of blobs) {
+    const m = project.assets?.[id];
+    if (m) zip.file(assetPath(m), blob);
+  }
   for (const page of project.pages) zip.file(pageFileName(page), exportPageHTML(project, page, { inlineCss: false }));
   zip.file('assets/site.css', `html,body{margin:0;scroll-behavior:smooth}\n${generateSiteCSS(project.theme)}`);
   zip.file('design/tokens.json', JSON.stringify(designTokens(project), null, 2));
@@ -145,7 +181,7 @@ export async function exportZip(project: Project, promptOptions: PromptOptions =
     zip.file('design/figma-tokens.css', figmaTokensCss(project.figma));
     zip.file('design/figma-tokens.json', JSON.stringify(project.figma, null, 2));
   }
-  zip.file('project.fwstudio', projectJSON(project));
+  zip.file('project.fwstudio', blobs.size ? await portableProjectJSON(project, blobs) : projectJSON(project));
   zip.file('README.md', `# ${project.brief.projectName}
 
 Exportado com **Frameworks Studio**.
@@ -154,6 +190,7 @@ Exportado com **Frameworks Studio**.
 |---|---|
 | \`index.html\` (+ páginas) | Site estático pronto — abra no navegador ou publique em qualquer host |
 | \`assets/site.css\` | Estilos gerados a partir do design system |
+| \`assets/img/\` | Imagens enviadas no Studio (otimizadas) |
 | \`CLAUDE_PROMPT.md\` | Prompt estruturado — cole no Claude Code para gerar o projeto em ${project.brief.stack} |
 | \`design/tokens.json\` | Design tokens (formato W3C DTCG) |
 | \`design/tailwind-theme.css\` | Tema pronto para Tailwind v4 / v3 |

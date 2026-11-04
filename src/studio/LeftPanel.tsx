@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
+import { MediaPanel } from './MediaPanel';
 import { Search, GripVertical, Eye, EyeOff, Lock, Unlock, Copy, Trash2, Plus, FileText, Files, Layers3, Blocks, Palette, ClipboardList, Keyboard } from 'lucide-react';
 import { useStore, useActivePage, type LeftTab, type RightTab } from '../core/store';
 import { CATEGORIES, SECTIONS, SECTION_MAP } from '../core/sections';
@@ -14,6 +16,7 @@ export function Rail() {
     { id: 'library', icon: <Blocks size={18} />, tip: 'Biblioteca de seções' },
     { id: 'layers', icon: <Layers3 size={18} />, tip: 'Camadas' },
     { id: 'pages', icon: <Files size={18} />, tip: 'Páginas' },
+    { id: 'media', icon: <ImageIcon size={18} />, tip: 'Mídia' },
   ];
   const right: { id: RightTab; icon: JSX; tip: string }[] = [
     { id: 'theme', icon: <Palette size={18} />, tip: 'Design system' },
@@ -42,6 +45,7 @@ export function LeftPanel() {
       {tab === 'library' && <Library />}
       {tab === 'layers' && <LayersPanel />}
       {tab === 'pages' && <PagesPanel />}
+      {tab === 'media' && <MediaPanel />}
     </aside>
   );
 }

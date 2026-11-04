@@ -4,7 +4,7 @@ import {
   HelpCircle, Megaphone, Mail, Send, PanelBottom, Check, Menu, type LucideIcon,
 } from 'lucide-react';
 import type { Field, Props, PropValue, Section, SectionStyle, SectionType } from './types';
-import { Editable, Media } from './render/editable';
+import { Editable, Img, Media } from './render/editable';
 import { SiteIcon } from './icons';
 
 // ─── helpers ────────────────────────────────────────────────────
@@ -138,7 +138,7 @@ export const SECTIONS: SectionDef[] = [
     render: ({ s, p }) => (
       <div className={`fw-container fw-w-${s.style.maxWidth} fw-nav-inner`}>
         <a className="fw-logo" href="#">
-          {str(p.logoUrl) ? <img src={str(p.logoUrl)} alt="" style={{ height: 28 }} /> : <span className="fw-logo-mark">{str(p.brand).slice(0, 1)}</span>}
+          {str(p.logoUrl) ? <Img src={str(p.logoUrl)} style={{ height: 28 }} /> : <span className="fw-logo-mark">{str(p.brand).slice(0, 1)}</span>}
           <E path="brand" value={str(p.brand)} />
         </a>
         <nav className="fw-nav-links">
@@ -196,12 +196,12 @@ export const SECTIONS: SectionDef[] = [
       const proof = str(p.proof) && (
         <div className="fw-hero-proof"><div className="fw-avatars"><span /><span /><span /></div><E className="fw-muted" path="proof" value={str(p.proof)} /></div>
       );
-      const visual = str(p.image) ? <Media src={str(p.image)} /> : bool(p.showMockup) ? <AppWindow /> : null;
+      const visual = str(p.image) ? <Media src={str(p.image)} path="image" /> : bool(p.showMockup) ? <AppWindow /> : null;
       if (s.variant === 'split') {
         return (
           <div className="fw-split fw-hero-split" style={{ textAlign: 'left' }}>
             <div>{badge}<Head p={p} h1 /><Actions p={p} />{proof}</div>
-            <div>{visual ?? <Media />}</div>
+            <div>{visual ?? <Media path="image" />}</div>
           </div>
         );
       }
@@ -375,7 +375,7 @@ export const SECTIONS: SectionDef[] = [
           </ul>
           <Actions p={p} />
         </div>
-        <div>{bool(p.showMockup) && !str(p.image) ? <AppWindow /> : <Media src={str(p.image)} />}</div>
+        <div>{bool(p.showMockup) && !str(p.image) ? <AppWindow /> : <Media src={str(p.image)} path="image" />}</div>
       </div>
     ),
   },
@@ -400,7 +400,7 @@ export const SECTIONS: SectionDef[] = [
       <>
         <Head p={p} />
         <div className={`fw-gallery ${s.variant === 'masonry' ? 'fw-gallery-masonry' : ''}`}>
-          {list(p.images).map((im, i) => (<Media key={i} src={str(im.src)} alt={str(im.caption)} caption={str(im.caption) || undefined} />))}
+          {list(p.images).map((im, i) => (<Media key={i} src={str(im.src)} alt={str(im.caption)} caption={str(im.caption) || undefined} path={`images.${i}.src`} />))}
         </div>
       </>
     ),
@@ -430,7 +430,7 @@ export const SECTIONS: SectionDef[] = [
       const items = list(p.items);
       const Person = ({ it, i }: { it: Props; i: number }) => (
         <div className="fw-person">
-          <div className="fw-person-avatar">{str(it.avatar) ? <img src={str(it.avatar)} alt="" /> : str(it.name).slice(0, 1)}</div>
+          <div className="fw-person-avatar">{str(it.avatar) ? <Img src={str(it.avatar)} /> : str(it.name).slice(0, 1)}</div>
           <div style={{ textAlign: 'left' }}><E as="strong" path={`items.${i}.name`} value={str(it.name)} /><E as="span" className="fw-muted fw-small" path={`items.${i}.role`} value={str(it.role)} /></div>
         </div>
       );
@@ -528,7 +528,7 @@ export const SECTIONS: SectionDef[] = [
         <div className="fw-grid fw-cols-4">
           {list(p.members).map((m, i) => (
             <div className="fw-member" key={i}>
-              <Media src={str(m.photo)} alt={str(m.name)} />
+              <Media src={str(m.photo)} alt={str(m.name)} path={`members.${i}.photo`} />
               <E as="h3" className="fw-h3" path={`members.${i}.name`} value={str(m.name)} />
               <E as="p" className="fw-muted fw-small" path={`members.${i}.role`} value={str(m.role)} />
             </div>

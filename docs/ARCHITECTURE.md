@@ -26,6 +26,8 @@ src/
     prompt.ts        gerador do prompt para Claude Code (PT/EN, níveis)
     exporters.tsx    HTML, ZIP, tokens W3C, Tailwind, CSS vars, JSON
     platform.ts      bridge desktop/web
+    assets.ts        biblioteca de mídia (IndexedDB, refs `asset:`, otimização)
+    tokensImport.ts  importação de tokens do Figma
   studio/            TopBar, LeftPanel (biblioteca/camadas/páginas), Canvas,
                      Inspector, ThemePanel, BriefPanel, modals, CommandPalette
   landing/           página de marketing
@@ -53,8 +55,6 @@ Seções ocultas são omitidas.
 
 ## Próximos passos sugeridos
 
-- Upload de imagens e assets locais (IndexedDB / sistema de arquivos no desktop)
 - Seções customizadas pelo usuário (blocos HTML livres)
 - Colaboração em tempo real (CRDT / Yjs)
 - Envio direto para o Claude Code via CLI a partir do app desktop
-- Testes E2E com Playwright no CI

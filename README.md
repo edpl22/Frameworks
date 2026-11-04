@@ -22,6 +22,7 @@ Frameworks Studio é um editor visual de sites. Você monta páginas a partir de
 | **Biblioteca** | 15 tipos de seção com mais de 30 variações: Navbar, Hero, Logos, Recursos (grid/bento/lista), Números, Texto + mídia, Galeria, Depoimentos, Preços, Equipe, FAQ, CTA, Contato, Newsletter e Rodapé |
 | **Inspetor** | Painel gerado a partir do schema de cada seção (textos, listas, ícones, imagens, toggles) e controles de estilo: fundo (mesh, gradiente, imagem com overlay), espaçamento, alinhamento, largura, animação, bloqueio e instruções por seção para o Claude |
 | **Design system** | 19 presets (incl. glassmorphism, neo-brutalismo, Swiss minimal), sombra brutal, gerador de paleta por harmonia (análoga, complementar, triádica, split, monocromática), contraste WCAG ao vivo, 22 pares tipográficos, escala modular, raio, sombras, estilo de botão e densidade |
+| **Mídia** | Biblioteca de imagens local (IndexedDB, funciona offline e no desktop). Envie clicando ou soltando um arquivo direto na foto do canvas, arraste da biblioteca para qualquer seção ou escolha no inspetor. Imagens grandes são reduzidas para 2400px e convertidas para WebP. Vão para o ZIP (`assets/img/`), embutidas no HTML de arquivo único e no `.fwstudio`, e aparecem no prompt com o caminho no pacote |
 | **Figma** | Importa tokens de **Figma Variables** (JSON da REST API, com modos e aliases), **Tokens Studio** (multi-set), **W3C DTCG** e **CSS variables**. Mapeamento automático para os papéis do tema (editável, com contraste WCAG e pré-visualização ao vivo), fontes, raio e tamanho base. Os nomes originais seguem para o prompt e para `design/figma-tokens.css` no ZIP |
 | **Briefing** | Objetivo, público, tom de voz, segmento, idioma, stack de destino (Next.js, React+Vite, Astro, Nuxt, SvelteKit, HTML), funcionalidades e referências |
 | **Prompt Builder** | Preview Markdown ao vivo, estimativa de tokens, nível de detalhe, PT/EN, toggles de seções, cópia, download `.md` e comando CLI pronto |
@@ -41,6 +42,7 @@ npm run dev            # http://localhost:5173  (landing → "Abrir Studio")
 | `npm run dev` | Servidor de desenvolvimento (Vite) |
 | `npm run build` | Typecheck + build de produção em `dist/` |
 | `npm test` | Testes unitários (Vitest) |
+| `npm run test:e2e` | Testes end-to-end no navegador (Playwright, contra o build de produção) |
 | `npm run desktop:dev` | App desktop com hot reload |
 | `npm run desktop:build` | Gera instaladores em `release/` (dmg/zip, nsis/portable, AppImage/deb) |
 | `npm run desktop:dir` | Build desktop descompactado (rápido, para testes) |
@@ -64,6 +66,17 @@ Electron com `contextIsolation`, `sandbox` e sem `nodeIntegration`. O renderer s
 - título da janela com indicador de alterações não salvas
 
 > Em ambientes de CI sem acesso ao download do binário do Electron, use `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install`.
+
+Smoke test do app empacotado (Linux): `FW_SMOKE_TEST=1 xvfb-run -a release/linux-unpacked/frameworks-studio --no-sandbox`. O app abre, confere se o Studio renderizou, se a bridge desktop existe e se nenhuma API do Node vazou para o renderer, e sai com código 0 ou 1.
+
+### CI
+
+O GitHub Actions roda quatro jobs:
+
+- **Testes & build:** Vitest, typecheck e build
+- **E2E:** Playwright cobrindo edição inline, drag-and-drop, templates, prompt, importação do Figma, upload de imagens e exportação ZIP
+- **Docker:** build da imagem e smoke test do container
+- **Desktop:** empacotamento com electron-builder e smoke test do app sob Xvfb
 
 ## Do design ao código
 

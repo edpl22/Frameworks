@@ -7,6 +7,7 @@ import { generateSiteCSS } from '../core/siteCss';
 import { SECTIONS, SECTION_MAP } from '../core/sections';
 import type { Device, Section, SectionType } from '../core/types';
 import { DND_MOVE, DND_NEW } from './LeftPanel';
+import { uploadImage } from './assetOps';
 
 export const DEVICE_WIDTH: Record<Device, number> = { desktop: 1440, tablet: 820, mobile: 390 };
 
@@ -153,7 +154,7 @@ function CanvasSection({ s, index, count, preview, dragging, onDragStart, onDrag
   const hovered = useStore((st) => st.hoverId === s.id);
   const { select, set, updateProp, moveSection, duplicateSection, removeSection, updateSection } = useStore.getState();
   const def = SECTION_MAP[s.type];
-  const ctx = useMemo(() => ({ editable: !preview && !s.locked, onEdit: (path: string, v: string) => updateProp(s.id, path, v) }), [preview, s.locked, s.id, updateProp]);
+  const ctx = useMemo(() => ({ editable: !preview && !s.locked, onEdit: (path: string, v: string) => updateProp(s.id, path, v), uploadImage }), [preview, s.locked, s.id, updateProp]);
 
   if (preview) {
     if (s.hidden) return null;

@@ -84,3 +84,61 @@ jobs:
       - name: Logs do container
         if: always()
         run: docker logs fw || true
+
+  e2e:
+    name: Testes E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Instalar Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build web
+        run: npm run build
+
+      - name: Testes E2E
+        run: npm run test:e2e
+
+      - name: Relatório do Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  desktop:
+    name: Desktop (Electron) — empacotar & smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Empacotar (linux-unpacked)
+        run: npm run desktop:dir -- --linux --publish never
+
+      - name: Smoke test do app empacotado
+        run: |
+          command -v xvfb-run >/dev/null || (sudo apt-get update && sudo apt-get install -y xvfb)
+          FW_SMOKE_TEST=1 timeout 120 xvfb-run -a release/linux-unpacked/frameworks-studio --no-sandbox 2>&1 | tee smoke.log
+          grep -q '\[smoke\] OK' smoke.log

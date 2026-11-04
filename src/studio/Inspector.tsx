@@ -5,6 +5,7 @@ import { SECTION_MAP, str, list, bool } from '../core/sections';
 import type { Field as FieldDef, Props, PropValue, Section, SectionStyle } from '../core/types';
 import { Field, TextInput, TextArea, Select, Segmented, Slider, Toggle, ColorInput, IconPicker, mod } from './ui';
 import { ThemePanel } from './ThemePanel';
+import { ImageField } from './MediaPanel';
 import { BriefPanel } from './BriefPanel';
 
 export function RightPanel() {
@@ -95,7 +96,7 @@ function SectionInspector({ s }: { s: Section }) {
           </Field>
           {st.background === 'image' && (
             <>
-              <Field label="URL da imagem"><TextInput value={st.backgroundImage ?? ''} onChange={(v) => setStyle({ backgroundImage: v })} placeholder="https://…" /></Field>
+              <Field label="Imagem de fundo"><ImageField value={st.backgroundImage ?? ''} onChange={(v) => setStyle({ backgroundImage: v })} /></Field>
               <Field label="Overlay"><Slider value={st.overlay ?? 0.5} min={0} max={0.9} step={0.05} onChange={(v) => setStyle({ overlay: v })} format={(v) => `${Math.round(v * 100)}%`} /></Field>
             </>
           )}
@@ -133,10 +134,11 @@ function SectionInspector({ s }: { s: Section }) {
 
 function FieldEditor({ field, value, onChange }: { field: FieldDef; value: PropValue | undefined; onChange: (v: PropValue) => void }) {
   switch (field.kind) {
+    case 'image':
+      return <Field label={field.label}><ImageField value={str(value)} onChange={onChange} /></Field>;
     case 'text':
     case 'url':
-    case 'image':
-      return <Field label={field.label}><TextInput value={str(value)} onChange={onChange} placeholder={'placeholder' in field ? field.placeholder : field.kind === 'image' ? 'https://… (vazio = placeholder)' : undefined} /></Field>;
+      return <Field label={field.label}><TextInput value={str(value)} onChange={onChange} placeholder={'placeholder' in field ? field.placeholder : undefined} /></Field>;
     case 'textarea':
       return <Field label={field.label}><TextArea value={str(value)} onChange={onChange} placeholder={field.placeholder} /></Field>;
     case 'color':
