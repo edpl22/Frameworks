@@ -8,7 +8,7 @@ const STORAGE_KEY = 'fw.project.v1';
 const HISTORY_LIMIT = 150;
 const COALESCE_MS = 700;
 
-export type LeftTab = 'library' | 'layers' | 'pages';
+export type LeftTab = 'library' | 'layers' | 'pages' | 'media';
 export type RightTab = 'inspector' | 'theme' | 'brief';
 export type Modal = null | 'prompt' | 'export' | 'templates' | 'shortcuts' | 'figma';
 

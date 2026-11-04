@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Sparkles, Copy, Download, Terminal, FileCode2, FileArchive, FileJson, Palette, Wind, Braces, FileText, Upload, CheckCircle2, AlertCircle, Info, Keyboard, LayoutTemplate, Search } from 'lucide-react';
 import { useStore, activePage } from '../core/store';
 import { generatePrompt, estimateTokens, DEFAULT_PROMPT_OPTIONS, STACKS, type PromptOptions } from '../core/prompt';
-import { exportPageHTML, exportZip, projectJSON, designTokens, tailwindConfig, cssVarsFile, pageFileName, renderPageMarkup } from '../core/exporters';
+import { exportPageHTML, exportZip, portableProjectJSON, designTokens, tailwindConfig, cssVarsFile, pageFileName, renderPageMarkup, dataUrlAssetResolver, relativeAssetResolver } from '../core/exporters';
+import { loadProjectBlobs } from '../core/assets';
 import { generateSiteCSS } from '../core/siteCss';
 import { TEMPLATES, TEMPLATE_CATEGORIES, projectFromTemplate, type TemplateCategory } from '../core/templates';
 import { copyText, saveAs } from '../core/platform';
@@ -109,13 +110,13 @@ export function ExportModal() {
 
   const items: { icon: ReactNode; title: string; desc: string; ext: string; action: () => void; featured?: boolean }[] = [
     { featured: true, icon: <FileArchive size={22} />, title: 'Pacote completo (.zip)', desc: 'Todas as páginas em HTML estático, CSS, design tokens, tema Tailwind, prompt do Claude Code e o arquivo do projeto — pronto para publicar ou evoluir.', ext: '.zip',
-      action: () => run(async () => saveAs(`${base}.zip`, await exportZip(project), 'application/zip'), 'Pacote exportado') },
-    { icon: <FileCode2 size={18} />, title: 'Página atual em HTML', desc: `“${page.name}” como arquivo único com CSS embutido.`, ext: '.html',
-      action: () => run(() => saveAs(pageFileName(page), exportPageHTML(project, page), 'text/html'), 'HTML exportado') },
+      action: () => run(async () => saveAs(`${base}.zip`, await exportZip(project, undefined, await loadProjectBlobs(project)), 'application/zip'), 'Pacote exportado') },
+    { icon: <FileCode2 size={18} />, title: 'Página atual em HTML', desc: `“${page.name}” como arquivo único, com CSS e imagens embutidos.`, ext: '.html',
+      action: () => run(async () => saveAs(pageFileName(page), exportPageHTML(project, page, { inlineCss: true, resolveAsset: await dataUrlAssetResolver(await loadProjectBlobs(project)) }), 'text/html'), 'HTML exportado') },
     { icon: <Sparkles size={18} />, title: 'Prompt Claude Code', desc: 'Especificação Markdown estruturada para gerar o projeto.', ext: '.md',
       action: () => run(() => saveAs('CLAUDE_PROMPT.md', generatePrompt(project), 'text/markdown'), 'Prompt exportado') },
     { icon: <FileJson size={18} />, title: 'Projeto', desc: 'Arquivo editável para reabrir no Frameworks Studio.', ext: '.fwstudio',
-      action: () => run(() => saveAs(`${base}.fwstudio`, projectJSON(project), 'application/json'), 'Projeto exportado') },
+      action: () => run(async () => saveAs(`${base}.fwstudio`, await portableProjectJSON(project, await loadProjectBlobs(project)), 'application/json'), 'Projeto exportado') },
     { icon: <Braces size={18} />, title: 'Design tokens', desc: 'Formato W3C DTCG — compatível com Style Dictionary, Figma Tokens.', ext: '.json',
       action: () => run(() => saveAs(`${base}-tokens.json`, JSON.stringify(designTokens(project), null, 2), 'application/json'), 'Tokens exportados') },
     { icon: <Wind size={18} />, title: 'Tema Tailwind', desc: 'Bloco @theme (v4) + tailwind.config (v3).', ext: '.css',
@@ -123,7 +124,7 @@ export function ExportModal() {
     { icon: <Palette size={18} />, title: 'CSS variables', desc: 'Custom properties prontas para qualquer stack.', ext: '.css',
       action: () => run(() => saveAs('tokens.css', cssVarsFile(project), 'text/css'), 'CSS exportado') },
     { icon: <FileText size={18} />, title: 'Copiar HTML', desc: 'Markup da página atual para a área de transferência.', ext: 'clip',
-      action: async () => { await copyText(renderPageMarkup(page)); toast('HTML copiado'); } },
+      action: async () => { await copyText(renderPageMarkup(page, relativeAssetResolver(project))); toast('HTML copiado'); } },
     { icon: <FigmaMark size={18} />, title: 'Importar tokens do Figma', desc: 'Variables, Tokens Studio, DTCG ou CSS → design system.', ext: 'figma',
       action: () => set({ modal: 'figma' }) },
     { icon: <Upload size={18} />, title: 'Importar projeto', desc: 'Abra um arquivo .fwstudio ou .json.', ext: 'open',

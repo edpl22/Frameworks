@@ -8,6 +8,7 @@ import { Canvas, SiteStyles } from './Canvas';
 import { RightPanel } from './Inspector';
 import { PromptModal, ExportModal, TemplatesModal, ShortcutsModal, Toasts } from './modals';
 import { CommandPalette } from './CommandPalette';
+import { collectAssetIds, useAssetUrls } from '../core/assets';
 import { FigmaImportModal } from './FigmaImport';
 import { openProjectFile, saveProject } from './fileOps';
 
@@ -131,8 +132,25 @@ function useFonts() {
   }, []);
 }
 
+function useAssetLoader() {
+  const assets = useStore((s) => s.project.assets);
+  const pages = useStore((s) => s.project.pages);
+  useEffect(() => {
+    const ids = new Set([...Object.keys(assets ?? {}), ...collectAssetIds(useStore.getState().project)]);
+    useAssetUrls.getState().ensure(Array.from(ids));
+  }, [assets, pages]);
+  // A file dropped outside a drop zone must not make the window navigate to it.
+  useEffect(() => {
+    const block = (e: DragEvent) => { if (e.dataTransfer?.types.includes('Files')) e.preventDefault(); };
+    window.addEventListener('dragover', block);
+    window.addEventListener('drop', block);
+    return () => { window.removeEventListener('dragover', block); window.removeEventListener('drop', block); };
+  }, []);
+}
+
 export function Studio() {
   const { modal, palette, preview } = useStore();
+  useAssetLoader();
   useShortcuts();
   useDesktopBridge();
   useFonts();

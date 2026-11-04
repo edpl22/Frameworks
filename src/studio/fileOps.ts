@@ -1,12 +1,14 @@
 import { useStore } from '../core/store';
-import { parseProject, projectJSON } from '../core/exporters';
+import { parseProjectFile, portableProjectJSON } from '../core/exporters';
+import { dataUrlToBlob, loadProjectBlobs, putBlob, useAssetUrls } from '../core/assets';
 import { desktop, pickTextFile, saveAs } from '../core/platform';
 
 const slugify = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'projeto';
 
 export async function saveProject(forceDialog = false) {
   const st = useStore.getState();
-  const json = projectJSON(st.project);
+  // Images travel inside the file so the project opens on any machine.
+  const json = await portableProjectJSON(st.project, await loadProjectBlobs(st.project));
   const d = desktop();
   if (d && st.filePath && !forceDialog) {
     const ok = await d.writeFile(st.filePath, json);
@@ -24,7 +26,12 @@ export async function openProjectFile() {
   const file = await pickTextFile();
   if (!file) return;
   try {
-    const p = parseProject(file.content);
+    const { project: p, assetData } = parseProjectFile(file.content);
+    for (const [id, data] of Object.entries(assetData)) {
+      const blob = await dataUrlToBlob(data);
+      await putBlob(id, blob).catch(() => undefined);
+      useAssetUrls.getState().register(id, blob);
+    }
     st.loadProject(p, desktop() ? file.name : null);
     st.toast(`“${p.brief.projectName}” aberto`);
   } catch (e) {
