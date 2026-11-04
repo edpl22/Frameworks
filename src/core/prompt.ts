@@ -1,6 +1,7 @@
 import type { Page, Project, Props, PropValue, Section, TargetStack } from './types';
 import { SECTION_MAP, str } from './sections';
 import { auditProject } from './audit';
+import { describeCanvas } from './canvas';
 import { contrastRatio, tonalScale, wcagLevel } from './color';
 import { anchorId } from './render/SiteSection';
 import { FORMAT_LABEL, figmaTokensCss, tokenCount } from './tokensImport';
@@ -111,7 +112,9 @@ function sectionSpec(s: Section, idx: number, o: PromptOptions): string {
     `- **${L(o, 'Espaçamento vertical', 'Vertical padding')}:** ${padLabel[st.paddingY]}${st.divider ? ` · ${L(o, 'borda superior divisória', 'top divider')}` : ''}`,
     `- **${L(o, 'Animação de entrada', 'Entrance animation')}:** ${st.animation === 'none' ? L(o, 'nenhuma', 'none') : `${st.animation} (on-scroll, uma vez, respeitar prefers-reduced-motion)`}`,
   ];
-  if (o.includeContent) {
+  if (s.type === 'canvas') {
+    parts.push(`- **${L(o, 'Composição (grade livre)', 'Composition (free grid)')}:**\n${describeCanvas(s.props).split('\n').map((l) => '  ' + l).join('\n')}`);
+  } else if (o.includeContent) {
     const c = sectionContent(s);
     if (c) parts.push(`- **${L(o, 'Conteúdo (use exatamente estes textos)', 'Content (use this copy verbatim)')}:**\n${c.split('\n').map((l) => '  ' + l).join('\n')}`);
   }

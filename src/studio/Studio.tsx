@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useStore, activePage } from '../core/store';
-import { ALL_FONTS, googleFontsHref } from '../core/theme';
+import { useShallow } from 'zustand/react/shallow';
+import { ALL_FONTS } from '../core/theme';
+import { ensureFonts, whenIdle } from '../core/fonts';
 import { desktop } from '../core/platform';
 import { TopBar } from './TopBar';
 import { Rail, LeftPanel } from './LeftPanel';
@@ -8,6 +10,7 @@ import { Canvas, SiteStyles } from './Canvas';
 import { RightPanel } from './Inspector';
 import { PromptModal, ExportModal, TemplatesModal, ShortcutsModal, Toasts } from './modals';
 import { CommandPalette } from './CommandPalette';
+import { CanvasWorkspace } from '../canvas/CanvasWorkspace';
 import { collectAssetIds, useAssetUrls } from '../core/assets';
 import { FigmaImportModal } from './FigmaImport';
 import { openProjectFile, saveProject } from './fileOps';
@@ -40,6 +43,7 @@ function useShortcuts() {
       if (meta && (key === '=' || key === '+')) { e.preventDefault(); s.set({ zoom: Math.min(2, s.zoom + 0.1) }); return; }
       if (meta && key === '-') { e.preventDefault(); s.set({ zoom: Math.max(0.25, s.zoom - 0.1) }); return; }
       if (meta && key === '0') { e.preventDefault(); s.set({ zoom: 1 }); return; }
+      if (s.mode === 'canvas') return; // the Canvas editor has its own element shortcuts
 
       const sel = s.selectedId;
       if (sel) {
@@ -106,30 +110,10 @@ function useDesktopBridge() {
 function useFonts() {
   const heading = useStore((s) => s.project.theme.fontHeading);
   const body = useStore((s) => s.project.theme.fontBody);
-  // Fonts that came from Figma may not be in the built-in list.
-  useEffect(() => {
-    for (const f of [heading, body]) {
-      const id = 'fw-font-' + f.replace(/\W+/g, '-');
-      if (document.getElementById(id)) continue;
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href = googleFontsHref([f]);
-      document.head.appendChild(link);
-    }
-  }, [heading, body]);
-  useEffect(() => {
-    // One stylesheet per family: a single unavailable font can't break the others.
-    for (const f of ALL_FONTS) {
-      const id = 'fw-font-' + f.replace(/\W+/g, '-');
-      if (document.getElementById(id)) continue;
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href = googleFontsHref([f]);
-      document.head.appendChild(link);
-    }
-  }, []);
+  // The project's fonts load right away (Figma fonts may not be in the built-in list).
+  useEffect(() => ensureFonts([heading, body]), [heading, body]);
+  // The rest of the catalog (font picker previews) waits until the editor is idle.
+  useEffect(() => whenIdle(() => ensureFonts(ALL_FONTS), 4000), []);
 }
 
 function useAssetLoader() {
@@ -149,22 +133,26 @@ function useAssetLoader() {
 }
 
 export function Studio() {
-  const { modal, palette, preview } = useStore();
+  const { modal, palette, preview, mode } = useStore(useShallow((s) => ({ modal: s.modal, palette: s.palette, preview: s.preview, mode: s.mode })));
   useAssetLoader();
   useShortcuts();
   useDesktopBridge();
   useFonts();
 
   return (
-    <div className={'studio' + (preview ? ' is-preview' : '')}>
+    <div className={'studio' + (preview && mode === 'studio' ? ' is-preview' : '') + (mode === 'canvas' ? ' is-canvas' : '')}>
       <SiteStyles />
       <TopBar />
-      <div className="studio-body">
-        <Rail />
-        <LeftPanel />
-        <Canvas />
-        <RightPanel />
-      </div>
+      {mode === 'canvas' ? (
+        <CanvasWorkspace />
+      ) : (
+        <div className="studio-body">
+          <Rail />
+          <LeftPanel />
+          <Canvas />
+          <RightPanel />
+        </div>
+      )}
       {modal === 'prompt' && <PromptModal />}
       {modal === 'export' && <ExportModal />}
       {modal === 'templates' && <TemplatesModal />}

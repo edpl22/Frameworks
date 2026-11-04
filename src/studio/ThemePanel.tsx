@@ -22,7 +22,7 @@ export function ThemePanel() {
   const theme = useStore((s) => s.project.theme);
   const figma = useStore((s) => s.project.figma);
   const openFigma = () => useStore.getState().set({ modal: 'figma' });
-  const { setTheme, setPalette, applyPreset, commit } = useStore();
+  const { setTheme, setPalette, applyPreset, commit } = useStore.getState();
   const [seed, setSeed] = useState(theme.palette.primary);
   const [harmony, setHarmony] = useState<Harmony>('analogous');
   const preview = useMemo(() => harmonyPalette(seed, harmony, theme.mode), [seed, harmony, theme.mode]);

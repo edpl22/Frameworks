@@ -4,6 +4,7 @@ import {
   Heart, Star, Users, MessageCircle, Mail, Phone, MapPin, Clock, Check, CheckCircle2, Gauge,
   Target, TrendingUp, Wand2, Workflow, Database, Smartphone, Leaf, Award, Gem, Infinity as InfinityIcon,
   Menu, ArrowRight, Play, Box, Camera, Coffee,
+  Eye, BookOpen, Feather, Key, Flame, Moon, Hourglass, Crosshair, Activity, Bus, Scroll, Ticket,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,6 +30,8 @@ export const SITE_ICONS: Record<string, LucideIcon | IconLike> = {
   leaf: Leaf, award: Award, gem: Gem, infinity: InfinityIcon, box: Box, camera: Camera, coffee: Coffee,
   github: Github, twitter: Twitter, linkedin: Linkedin, instagram: Instagram, youtube: Youtube,
   menu: Menu, arrow: ArrowRight, play: Play,
+  eye: Eye, book: BookOpen, feather: Feather, key: Key, flame: Flame, moon: Moon, hourglass: Hourglass,
+  crosshair: Crosshair, activity: Activity, bus: Bus, scroll: Scroll, ticket: Ticket,
 };
 
 export const ICON_NAMES = Object.keys(SITE_ICONS);

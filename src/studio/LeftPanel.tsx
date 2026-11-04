@@ -5,6 +5,7 @@ import { AuditPanel, useAudit } from './AuditPanel';
 import { ShieldCheck } from 'lucide-react';
 import { Search, GripVertical, Eye, EyeOff, Lock, Unlock, Copy, Trash2, Plus, FileText, Files, Layers3, Blocks, Palette, ClipboardList, Keyboard } from 'lucide-react';
 import { useStore, useActivePage, type LeftTab, type RightTab } from '../core/store';
+import { useShallow } from 'zustand/react/shallow';
 import { CATEGORIES, SECTIONS, SECTION_MAP } from '../core/sections';
 import type { SectionType } from '../core/types';
 import { Field, TextArea, TextInput } from './ui';
@@ -13,7 +14,7 @@ export const DND_NEW = 'application/x-fw-new';
 export const DND_MOVE = 'application/x-fw-move';
 
 export function Rail() {
-  const { leftTab, rightTab, set } = useStore();
+  const { leftTab, rightTab, set } = useStore(useShallow((s) => ({ leftTab: s.leftTab, rightTab: s.rightTab, set: s.set })));
   const audit = useAudit();
   const alerts = audit.counts.error + audit.counts.warning;
   const left: { id: LeftTab; icon: JSX; tip: string }[] = [
@@ -124,7 +125,8 @@ function Library() {
 
 function LayersPanel() {
   const page = useActivePage();
-  const { selectedId, select, moveSection, updateSection, duplicateSection, removeSection, set } = useStore();
+  const selectedId = useStore((s) => s.selectedId);
+  const { select, moveSection, updateSection, duplicateSection, removeSection, set } = useStore.getState();
   const [drag, setDrag] = useState<number | null>(null);
   const [over, setOver] = useState<{ i: number; after: boolean } | null>(null);
 
@@ -188,7 +190,8 @@ function LayersPanel() {
 }
 
 function PagesPanel() {
-  const { project, activePageId, set, addPage, removePage, updatePage, duplicatePage } = useStore();
+  const { project, activePageId } = useStore(useShallow((s) => ({ project: s.project, activePageId: s.activePageId })));
+  const { set, addPage, removePage, updatePage, duplicatePage } = useStore.getState();
   const page = project.pages.find((p) => p.id === activePageId) ?? project.pages[0];
   return (
     <>

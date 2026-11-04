@@ -1,12 +1,14 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import { relativeAssetResolver, pageFileName, cssVarsFile, designTokens, tailwindConfig, projectJSON, portableProjectJSON, type AssetResolver } from './exportData';
+
+export * from './exportData';
 import type { Page, Project } from './types';
 import { RenderContext } from './render/editable';
 import { SiteSection } from './render/SiteSection';
-import { cssVariables, generateSiteCSS } from './siteCss';
+import { generateSiteCSS } from './siteCss';
 import { googleFontsHref } from './theme';
-import { tonalScale } from './color';
 import { figmaTokensCss } from './tokensImport';
-import { assetIdOf, assetPath, blobToDataUrl } from './assets';
+import { assetPath } from './assets';
 import { generatePrompt, DEFAULT_PROMPT_OPTIONS, type PromptOptions } from './prompt';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -17,23 +19,6 @@ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isInter
 els.forEach(function(e){io.observe(e)});
 var b=r.querySelector('.fw-burger'),n=r.querySelector('.fw-nav-links');if(b&&n){b.addEventListener('click',function(){var o=n.style.display==='flex';n.style.cssText=o?'':'display:flex;flex-direction:column;position:absolute;top:68px;left:0;right:0;padding:20px;background:var(--fw-bg);border-bottom:1px solid var(--fw-border);gap:16px'})}})();`;
 
-export type AssetResolver = (src: string) => string | undefined;
-
-/** Default for exports: uploaded images point to `./assets/img/<id>.<ext>` next to the HTML. */
-export function relativeAssetResolver(project: Project): AssetResolver {
-  return (src) => {
-    const m = project.assets?.[assetIdOf(src)];
-    return m ? './' + assetPath(m) : undefined;
-  };
-}
-
-/** Inlines uploaded images as data URLs (single-file HTML export). */
-export async function dataUrlAssetResolver(blobs: Map<string, Blob>): Promise<AssetResolver> {
-  const urls = new Map<string, string>();
-  for (const [id, b] of blobs) urls.set(id, await blobToDataUrl(b));
-  return (src) => urls.get(assetIdOf(src));
-}
-
 export function renderPageMarkup(page: Page, resolveAsset?: AssetResolver): string {
   return renderToStaticMarkup(
     <RenderContext.Provider value={{ editable: false, resolveAsset }}>
@@ -42,10 +27,6 @@ export function renderPageMarkup(page: Page, resolveAsset?: AssetResolver): stri
       </div>
     </RenderContext.Provider>,
   );
-}
-
-export function pageFileName(page: Page): string {
-  return page.slug === '/' ? 'index.html' : `${page.slug.replace(/^\//, '').replace(/\//g, '-') || 'page'}.html`;
 }
 
 export function exportPageHTML(project: Project, page: Page, opts: { inlineCss?: boolean; resolveAsset?: AssetResolver } = { inlineCss: true }): string {
@@ -79,89 +60,6 @@ ${body}
 </body>
 </html>
 `;
-}
-
-export function cssVarsFile(project: Project): string {
-  const vars = cssVariables(project.theme);
-  return `:root {\n${Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`).join('\n')}\n}\n`;
-}
-
-/** W3C Design Tokens Community Group format. */
-export function designTokens(project: Project) {
-  const t = project.theme;
-  const color = (v: string) => ({ $type: 'color', $value: v });
-  const dim = (v: number) => ({ $type: 'dimension', $value: `${v}px` });
-  return {
-    color: {
-      ...Object.fromEntries(Object.entries(t.palette).map(([k, v]) => [k, color(v)])),
-      'primary-scale': Object.fromEntries(Object.entries(tonalScale(t.palette.primary)).map(([k, v]) => [k, color(v)])),
-    },
-    font: {
-      heading: { $type: 'fontFamily', $value: [t.fontHeading, 'serif'] },
-      body: { $type: 'fontFamily', $value: [t.fontBody, 'sans-serif'] },
-    },
-    size: {
-      base: dim(t.baseSize),
-      ...Object.fromEntries([['sm', -1], ['lg', 1], ['xl', 2], ['2xl', 3], ['3xl', 4], ['4xl', 5]].map(([k, e]) => [k, dim(+(t.baseSize * t.scale ** (e as number)).toFixed(1))])),
-    },
-    radius: { sm: dim(Math.round(t.radius * 0.6)), md: dim(t.radius), lg: dim(Math.round(t.radius * 1.5)) },
-    meta: { mode: t.mode, shadow: t.shadow, buttonStyle: t.buttonStyle, density: t.density, scaleRatio: t.scale },
-  };
-}
-
-export function tailwindConfig(project: Project): string {
-  const t = project.theme;
-  const scale = tonalScale(t.palette.primary);
-  return `/* Tailwind CSS v4 — cole em seu CSS global */
-@import "tailwindcss";
-
-@theme {
-${Object.entries(t.palette).map(([k, v]) => `  --color-${k}: ${v};`).join('\n')}
-${Object.entries(scale).map(([k, v]) => `  --color-primary-${k}: ${v};`).join('\n')}
-  --font-heading: "${t.fontHeading}", ui-serif, serif;
-  --font-body: "${t.fontBody}", ui-sans-serif, system-ui, sans-serif;
-  --radius-sm: ${Math.round(t.radius * 0.6)}px;
-  --radius-md: ${t.radius}px;
-  --radius-lg: ${Math.round(t.radius * 1.5)}px;
-}
-
-/* Tailwind v3 (tailwind.config.js)
-module.exports = {
-  theme: {
-    extend: {
-      colors: ${JSON.stringify({ ...t.palette, primary: { DEFAULT: t.palette.primary, ...scale } }, null, 2).replace(/\n/g, '\n      ')},
-      fontFamily: { heading: ['${t.fontHeading}', 'serif'], body: ['${t.fontBody}', 'sans-serif'] },
-      borderRadius: { DEFAULT: '${t.radius}px' },
-    },
-  },
-};
-*/
-`;
-}
-
-export function projectJSON(project: Project): string {
-  return JSON.stringify({ $schema: 'frameworks-studio/project@1', ...project }, null, 2);
-}
-
-/** Project file with the used images embedded, so it opens on any machine. */
-export async function portableProjectJSON(project: Project, blobs: Map<string, Blob>): Promise<string> {
-  const assetData: Record<string, string> = {};
-  for (const [id, b] of blobs) assetData[id] = await blobToDataUrl(b);
-  return JSON.stringify({ $schema: 'frameworks-studio/project@1', ...project, $assetData: assetData }, null, 2);
-}
-
-export function parseProject(text: string): Project {
-  return parseProjectFile(text).project;
-}
-
-export function parseProjectFile(text: string): { project: Project; assetData: Record<string, string> } {
-  let data;
-  try { data = JSON.parse(text); } catch { throw new Error('Arquivo de projeto inválido'); }
-  if (!data || !Array.isArray(data.pages) || !data.theme || !data.brief) throw new Error('Arquivo de projeto inválido');
-  const assetData = (data.$assetData ?? {}) as Record<string, string>;
-  delete data.$schema;
-  delete data.$assetData;
-  return { project: data as Project, assetData };
 }
 
 export async function exportZip(project: Project, promptOptions: PromptOptions = DEFAULT_PROMPT_OPTIONS, blobs: Map<string, Blob> = new Map()): Promise<Blob> {

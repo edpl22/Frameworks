@@ -21,7 +21,7 @@ function scoreTone(score: number) {
 
 export function AuditPanel() {
   const { issues, score, counts } = useAudit();
-  const { commit, set, select, toast } = useStore();
+  const { commit, set, select, toast } = useStore.getState();
   const [sev, setSev] = useState<Severity | 'all'>('all');
   const [cat, setCat] = useState<AuditCategory | 'all'>('all');
   const cats = Array.from(new Set(issues.map((i) => i.category)));

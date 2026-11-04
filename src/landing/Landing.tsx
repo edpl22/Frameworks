@@ -6,6 +6,7 @@ import {
 import { Logo, GithubMark as Github } from '../ui/Logo';
 import { CATALOG } from '../core/catalog';
 import type { Demo } from './demo';
+import type { StaticPage as StaticPageT } from '../core/render/StaticPage';
 import './landing.css';
 
 function useReveal() {
@@ -70,10 +71,10 @@ export function Landing() {
   useReveal();
   useSpotlight();
   // The live demo uses the real engine; it is code-split so the page paints first.
-  const [demo, setDemo] = useState<Demo | null>(null);
+  const [demo, setDemo] = useState<(Demo & { Page: typeof StaticPageT }) | null>(null);
   useEffect(() => {
     let alive = true;
-    import('./demo').then((m) => { if (alive) setDemo(m.buildDemo()); });
+    import('./demo').then((m) => { if (alive) setDemo({ ...m.buildDemo(), Page: m.StaticPage }); });
     return () => { alive = false; };
   }, []);
   const [scrolled, setScrolled] = useState(false);
@@ -141,7 +142,7 @@ export function Landing() {
                   {demo ? (
                     <>
                       <style>{demo.css}</style>
-                      <div className="lp-shot-site" dangerouslySetInnerHTML={{ __html: demo.html }} />
+                      <div className="lp-shot-site"><demo.Page sections={demo.sections} /></div>
                     </>
                   ) : <div className="lp-shot-site lp-shot-skeleton" />}
                   <div className="lp-shot-cursor"><MousePointer2 size={18} fill="#fff" /><span>Você</span></div>

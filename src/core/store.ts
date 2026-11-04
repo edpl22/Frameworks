@@ -36,6 +36,12 @@ interface State {
   toasts: Toast[];
   filePath: string | null; // desktop: current file on disk
   dirty: boolean;
+  /** Editor flavour: the full Studio or the Canva-style Canvas. */
+  mode: 'studio' | 'canvas';
+  /** Canvas mode: selected elements (all inside one free-form section). */
+  elSel: { sectionId: string | null; ids: string[] };
+  /** Canvas mode: text being edited in place (prop path), if any. */
+  editingPath: string | null;
 }
 
 interface Actions {
@@ -55,6 +61,9 @@ interface Actions {
   updateSection: (id: string, patch: Partial<Section>, key?: string) => void;
   updateProp: (id: string, path: string, value: unknown) => void;
   updateStyle: (id: string, patch: Partial<SectionStyle>) => void;
+  /** Generic section mutation on the active page (one undo step per `key` burst). */
+  mutateSection: (id: string, fn: (s: Section) => Section, key?: string) => void;
+  setMode: (mode: 'studio' | 'canvas') => void;
   copySection: (id: string) => void;
   pasteSection: () => void;
   // pages
@@ -71,6 +80,10 @@ interface Actions {
   loadProject: (p: Project, filePath?: string | null) => void;
   newFromTemplate: (id: string) => void;
   markSaved: (filePath?: string | null) => void;
+}
+
+function loadMode(): 'studio' | 'canvas' {
+  try { return localStorage.getItem('fw.mode') === 'canvas' ? 'canvas' : 'studio'; } catch { return 'studio'; }
 }
 
 function loadInitial(): Project {
@@ -116,6 +129,9 @@ export const useStore = create<State & Actions>((set, get) => {
     toasts: [],
     filePath: null,
     dirty: false,
+    mode: loadMode(),
+    elSel: { sectionId: null, ids: [] },
+    editingPath: null,
 
     commit: (fn, key) => {
       const { project, past, lastCommitKey, lastCommitAt } = get();
@@ -212,6 +228,11 @@ export const useStore = create<State & Actions>((set, get) => {
     },
     updateSection: (id, patch, key) => get().commit(mapSection(id, (s) => ({ ...s, ...patch })), key ?? `sec:${id}:${Object.keys(patch).join(',')}`),
     updateProp: (id, path, value) => get().commit(mapSection(id, (s) => ({ ...s, props: setPath(s.props, path, value) })), `prop:${id}:${path}`),
+    mutateSection: (id, fn, key) => get().commit(mapSection(id, fn), key),
+    setMode: (mode) => {
+      try { localStorage.setItem('fw.mode', mode); } catch { /* ignore */ }
+      set({ mode, elSel: { sectionId: null, ids: [] }, editingPath: null, selectedId: null, preview: false });
+    },
     updateStyle: (id, patch) => get().commit(mapSection(id, (s) => ({ ...s, style: { ...s.style, ...patch } })), `style:${id}:${Object.keys(patch).join(',')}`),
     copySection: (id) => {
       const s = activePage(get()).sections.find((x) => x.id === id);
@@ -270,7 +291,7 @@ export const useStore = create<State & Actions>((set, get) => {
       const tpl = TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0];
       const p = projectFromTemplate(tpl);
       const prev = get().project;
-      set({ project: p, activePageId: p.pages[0].id, selectedId: null, past: [...get().past, prev].slice(-HISTORY_LIMIT), future: [], modal: null, filePath: null, dirty: true });
+      set({ project: p, activePageId: p.pages[0].id, selectedId: null, elSel: { sectionId: null, ids: [] }, editingPath: null, past: [...get().past, prev].slice(-HISTORY_LIMIT), future: [], modal: null, filePath: null, dirty: true });
       get().toast(`Template “${tpl.name}” aplicado`);
     },
     markSaved: (filePath) => set({ dirty: false, ...(filePath !== undefined ? { filePath } : {}) }),

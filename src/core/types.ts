@@ -18,6 +18,7 @@ export type SectionType =
   | 'contact'
   | 'newsletter'
   | 'custom'
+  | 'canvas'
   | 'footer';
 
 export type Align = 'left' | 'center' | 'right';

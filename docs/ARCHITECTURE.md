@@ -29,6 +29,11 @@ src/
     assets.ts        biblioteca de mídia (IndexedDB, refs `asset:`, otimização)
     tokensImport.ts  importação de tokens do Figma
     audit.ts         auditoria de qualidade (a11y, SEO, links, mídia) + correções
+    canvas.tsx       seção livre: modelo de elementos, grade de 12 colunas, render e descrição
+    canvasKit.ts     composições prontas e decorações temáticas
+    templatesThemed.ts  templates temáticos (seções livres)
+  canvas/            modo Canvas: Stage (arrastar/redimensionar), Toolbar contextual,
+                     Panels (templates, elementos, texto, uploads, design), ops
   studio/            TopBar, LeftPanel (biblioteca/camadas/páginas), Canvas,
                      Inspector, ThemePanel, BriefPanel, modals, CommandPalette
   landing/           página de marketing

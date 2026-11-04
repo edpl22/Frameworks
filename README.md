@@ -23,13 +23,14 @@
 
 ---
 
-O Frameworks Studio é um editor visual de sites. Você monta páginas com seções prontas, ajusta o design system e escreve o conteúdo direto no canvas. Depois, um clique transforma tudo isso em uma **especificação estruturada para o [Claude Code](https://docs.claude.com/en/docs/claude-code/overview)**: stack, design tokens, arquitetura, o texto de cada seção, requisitos de qualidade e critérios de aceite. O resultado é um projeto Next.js, Astro, Nuxt, SvelteKit, React ou HTML puro, gerado a partir de um design que você controla.
+O Frameworks Studio é um editor visual de sites com dois modos: o **Studio**, com seções estruturadas e controle completo, e o **Canvas**, em que você arrasta, redimensiona e solta elementos livremente, como no Canva. Você monta as páginas, ajusta o design system e escreve o conteúdo direto na tela. Depois, um clique transforma tudo isso em uma **especificação estruturada para o [Claude Code](https://docs.claude.com/en/docs/claude-code/overview)**: stack, design tokens, arquitetura, o texto de cada seção, requisitos de qualidade e critérios de aceite. O resultado é um projeto Next.js, Astro, Nuxt, SvelteKit, React ou HTML puro, gerado a partir de um design que você controla.
 
 Roda no **navegador**, como **app desktop** (macOS, Windows e Linux) e em **Docker**.
 
 ## Sumário
 
 - [Recursos](#recursos)
+- [Modo Canvas](#modo-canvas)
 - [Começar](#começar)
 - [Do design ao código](#do-design-ao-código)
 - [Importar do Figma](#importar-do-figma)
@@ -56,8 +57,10 @@ Roda no **navegador**, como **app desktop** (macOS, Windows e Linux) e em **Dock
 </td>
 <td width="50%" valign="top">
 
-### 🧩 16 seções, 30+ layouts
-Navbar, Hero, Logos, Recursos (grid, bento, lista), Números, Texto + mídia, Galeria, Depoimentos, Preços, Equipe, FAQ, CTA, Contato, Newsletter, Rodapé e o **Bloco personalizado**: descreva livremente o que a seção deve fazer (uma calculadora, um mapa, uma linha do tempo…) e o Claude Code constrói a partir da sua descrição.
+### 🧩 17 seções, 30+ layouts
+Navbar, Hero, Logos, Recursos (grid, bento, lista), Números, Texto + mídia, Galeria, Depoimentos, Preços, Equipe, FAQ, CTA, Contato, Newsletter, Rodapé e mais duas especiais:
+- **Seção livre:** grade de 12 colunas, editada no modo Canvas.
+- **Bloco personalizado:** você descreve livremente o que a seção deve fazer (uma calculadora, um mapa, uma linha do tempo…) e o Claude Code constrói a partir da descrição.
 
 O inspetor é gerado a partir do schema de cada seção: textos, listas, ícones, imagens, fundo, espaçamento, alinhamento, largura e animação de entrada.
 
@@ -67,15 +70,17 @@ O inspetor é gerado a partir do schema de cada seção: textos, listas, ícones
 <td valign="top">
 
 ### 🌈 Design system
-- **19 presets**, entre eles Midnight Luxe, Aurora Glass, Neo-brutal, Swiss Minimal e Editorial
+- **30 presets**, entre eles Midnight Luxe, Aurora Glass, Neo-brutal, Swiss Minimal, Cyberpunk, Sci-fi, Fantasia, Retrô 8-bit, Neon Mercenário, Carmesim e Biblioteca
 - Gerador de paleta por harmonia, com **contraste WCAG ao vivo**
-- **22 pares tipográficos**, escala modular, raio, sombras (inclui a "brutal"), estilo de botão e densidade
+- **32 pares tipográficos**, escala modular, raio, sombras (inclui a "brutal"), estilo de botão e densidade
 
 </td>
 <td valign="top">
 
-### 📐 20 templates originais
-Oito categorias: SaaS & Tech, Portfólio & Agência, E-commerce & Marca, Negócios locais, Eventos & Educação, Institucional, Mobile e Básico. Cada template tem textos próprios, e alguns vêm com várias páginas.
+### 📐 31 templates originais
+Nove categorias: Temáticos, SaaS & Tech, Portfólio & Agência, E-commerce & Marca, Negócios locais, Eventos & Educação, Institucional, Mobile e Básico. Cada template tem textos próprios, e alguns vêm com várias páginas.
+
+Os **temáticos** (Cyberpunk, Sci-fi, Fantasia, Computação, Educação, Games retrô, Música, Natureza, Neon Mercenário, Expedição Carmesim e Biblioteca dos Dez Andares) são montados com seções livres e abrem prontos para editar no Canvas. Os três últimos evocam a estética de jogos (RPG cyberpunk, gótico literário e biblioteca art nouveau) com nomes, textos e decorações originais.
 
 A galeria tem filtros por estilo visual e busca.
 
@@ -139,6 +144,24 @@ Cada item leva direto à seção com problema. Contraste, SEO e rotas duplicadas
 <td align="center"><sub>Preview mobile e presets de design</sub></td>
 </tr>
 </table>
+
+## Modo Canvas
+
+<img src="docs/screenshots/canvas.webp" alt="Modo Canvas: template Cyberpunk com o título selecionado, alças de redimensionamento e a barra de ferramentas contextual" width="100%" />
+
+Alterne entre **Studio** e **Canvas** no topo da tela. Os dois modos editam o mesmo projeto, então dá para trocar a qualquer momento.
+
+- **Arrastar e soltar:** cada elemento (título, texto, botão, imagem, forma, ícone, selo, divisor) se move livremente e encaixa numa grade de 12 colunas. As guias aparecem durante o arraste.
+- **Redimensionar:** puxe as alças das bordas e dos cantos.
+- **Editar texto:** duplo clique (ou <kbd>Enter</kbd>) edita no lugar.
+- **Barra contextual:** muda conforme o que está selecionado, com tamanho e fonte do texto, cores do tema ou personalizadas, negrito, itálico, caixa alta, alinhamento, título principal (h1), formas, cantos, desfoque, brilho, opacidade, link de botão, troca de imagem e texto alternativo, camadas e "ocultar no celular".
+- **Barra lateral:**
+  - **Templates:** os 11 temáticos, mais busca entre todos os 31
+  - **Elementos:** seções prontas, formas, botões, imagem e ícones
+  - **Texto:** estilos de texto prontos
+  - **Uploads:** a biblioteca de mídia
+  - **Design:** o design system completo, inclusive a importação do Figma
+- **Responsivo de verdade:** no celular os elementos se empilham na ordem de leitura, mas cada card, número ou painel colorido continua inteiro (a forma de fundo vira o fundo do bloco), e os decorativos podem ser ocultados. O prompt descreve a posição de cada elemento na grade para o Claude Code reproduzir com CSS grid.
 
 ## Começar
 
@@ -294,12 +317,23 @@ A imagem é multi-stage: o Node 22 roda testes e build, e o nginx 1.27 serve os 
 
 <kbd>⌘/Ctrl</kbd> <kbd>/</kbd> mostra a lista dentro do app.
 
+No **modo Canvas**, com elementos selecionados:
+
+| Ação | Atalho |
+|---|---|
+| Mover pela grade | <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> (com <kbd>Shift</kbd>, de 2 em 2) |
+| Editar o texto | Duplo clique ou <kbd>Enter</kbd> |
+| Selecionar vários | <kbd>Shift</kbd> + clique · <kbd>⌘/Ctrl</kbd> <kbd>A</kbd> seleciona a seção inteira |
+| Duplicar · Copiar · Recortar · Colar | <kbd>⌘/Ctrl</kbd> <kbd>D</kbd> · <kbd>C</kbd> · <kbd>X</kbd> · <kbd>V</kbd> |
+| Camadas | <kbd>]</kbd> avança · <kbd>[</kbd> recua (com <kbd>⌘/Ctrl</kbd>: frente/fundo) |
+| Excluir · Desmarcar | <kbd>Delete</kbd> · <kbd>Esc</kbd> |
+
 ## Testes e CI
 
 | Camada | Ferramenta | Cobertura |
 |---|---|---|
-| Unitários | Vitest | 52 testes: cores e contraste, gerador de prompt, exportadores, CSS com escopo, templates, importação do Figma, mídia, auditoria de qualidade e store (undo/redo) |
-| End-to-end | Playwright | 12 cenários no navegador: edição inline, drag-and-drop, templates, preview mobile, prompt, Figma, upload de imagens, conteúdo do ZIP, painel de Qualidade e bloco personalizado |
+| Unitários | Vitest | 66 testes: cores e contraste, gerador de prompt, exportadores, CSS com escopo, templates, importação do Figma, mídia, auditoria de qualidade, seção livre (grade, ordem e agrupamento no celular, export, prompt) e store (undo/redo) |
+| End-to-end | Playwright | 19 cenários no navegador: edição inline, drag-and-drop, templates, preview mobile e em tela cheia, prompt, Figma, upload de imagens, conteúdo do ZIP, painel de Qualidade, bloco personalizado e o modo Canvas (templates temáticos, mover, redimensionar, editar, teclado, adicionar por clique e por arraste, barra contextual) |
 | Docker | GitHub Actions | Build da imagem, container no ar, `/healthz` e headers de segurança |
 | Desktop | GitHub Actions | Empacotamento com electron-builder e smoke test sob Xvfb |
 

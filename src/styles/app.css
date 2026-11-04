@@ -120,7 +120,7 @@ button { font: inherit; color: inherit; }
    ════════════════════════════════════════════════════════════════ */
 .studio { display: grid; grid-template-rows: 54px 1fr; height: 100vh; overflow: hidden; background: var(--bg); }
 .studio-body { display: grid; grid-template-columns: 56px 290px 1fr 330px; min-height: 0; }
-.studio.is-preview .studio-body { grid-template-columns: 0 0 1fr 0; }
+.studio.is-preview .studio-body { grid-template-columns: minmax(0, 1fr); }
 .studio.is-preview .rail, .studio.is-preview .lpanel, .studio.is-preview .rpanel { display: none; }
 
 /* Top bar */
@@ -134,7 +134,7 @@ button { font: inherit; color: inherit; }
 .project-name:hover { border-color: var(--line-2); }
 .project-name:focus { outline: none; border-color: var(--brand); background: var(--bg-2); }
 .dirty-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 8px var(--warn); }
-.tb-center { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
+.tb-center { display: flex; align-items: center; gap: 8px; flex-shrink: 0; } /* sits between two spacers: centered, never overlapping */
 .zoom-label { font-family: var(--mono); font-size: 11px; color: var(--text-2); width: 44px; text-align: center; cursor: pointer; }
 
 /* Rail */
@@ -425,6 +425,10 @@ button { font: inherit; color: inherit; }
 .fw-media-upload { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; padding: 8px 14px; border-radius: 999px; background: rgba(15, 15, 24, 0.86); color: #fff; font: 600 12px/1 var(--font); cursor: pointer; opacity: 0; transition: opacity .15s; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.18); white-space: nowrap; }
 .fw-media:hover .fw-media-upload, .fw-media-over .fw-media-upload { opacity: 1; }
 .fw-media-over { outline: 3px solid #8b5cf6; outline-offset: -3px; }
+
+.canvas-cta { display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.4); background: linear-gradient(120deg, rgba(139, 92, 246, 0.14), rgba(34, 211, 238, 0.06)); font-size: 12px; color: var(--text-2); }
+.canvas-cta b { color: var(--text); font-size: 13px; }
+.studio.is-canvas .studio-body { display: none; }
 
 /* Quality audit */
 .rail-badge { position: absolute; top: 3px; right: 3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--warn); color: #1a1200; font-size: 9.5px; font-weight: 700; display: grid; place-items: center; line-height: 1; }

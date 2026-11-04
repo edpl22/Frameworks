@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Search, Sparkles, Download, Undo2, Redo2, Eye, Monitor, Tablet, Smartphone, LayoutTemplate, Palette, FileText, Save, FolderOpen, Grid3x3, Keyboard, Plus, MousePointer2, Sun, Moon } from 'lucide-react';
 import { useStore, activePage } from '../core/store';
+import { useShallow } from 'zustand/react/shallow';
 import { SECTIONS, SECTION_MAP } from '../core/sections';
 import { THEME_PRESETS } from '../core/theme';
 import { TEMPLATES } from '../core/templates';
@@ -30,7 +31,7 @@ export function score(query: string, text: string): number {
 }
 
 export function CommandPalette() {
-  const st = useStore();
+  const st = useStore(useShallow((s) => ({ project: s.project, activePageId: s.activePageId, set: s.set })));
   const [q, setQ] = useState('');
   const [idx, setIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +43,8 @@ export function CommandPalette() {
     return [
       { id: 'prompt', group: 'Ações', label: 'Gerar prompt para Claude Code', icon: <Sparkles size={14} />, shortcut: `${mod} ↵`, run: () => s.set({ modal: 'prompt' }) },
       { id: 'export', group: 'Ações', label: 'Exportar…', icon: <Download size={14} />, shortcut: `${mod} E`, run: () => s.set({ modal: 'export' }) },
+      { id: 'mode-canvas', group: 'Ações', label: 'Abrir modo Canvas (arrastar e soltar)', icon: <MousePointer2 size={14} />, keywords: 'canva livre grade arrastar', run: () => s.setMode('canvas') },
+      { id: 'mode-studio', group: 'Ações', label: 'Abrir modo Studio', icon: <LayoutTemplate size={14} />, keywords: 'studio secoes', run: () => s.setMode('studio') },
       { id: 'figma', group: 'Ações', label: 'Importar tokens do Figma', icon: <Palette size={14} />, keywords: 'figma variables tokens studio dtcg design tokens importar', run: () => s.set({ modal: 'figma' }) },
       { id: 'templates', group: 'Ações', label: 'Abrir templates', icon: <LayoutTemplate size={14} />, run: () => s.set({ modal: 'templates' }) },
       { id: 'save', group: 'Ações', label: 'Salvar projeto', icon: <Save size={14} />, shortcut: `${mod} S`, run: () => saveProject() },
