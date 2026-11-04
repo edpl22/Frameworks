@@ -49,7 +49,7 @@ function Inspector() {
 
 function SectionInspector({ s }: { s: Section }) {
   const def = SECTION_MAP[s.type];
-  const { updateSection, updateProp, updateStyle, duplicateSection, removeSection, moveSelected } = useStore();
+  const { updateSection, updateProp, updateStyle, duplicateSection, removeSection, moveSelected } = useStore.getState();
   const Icon = def.icon;
   const st = s.style;
   const setStyle = (patch: Partial<SectionStyle>) => updateStyle(s.id, patch);

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp, ArrowDown, Copy, Trash2, EyeOff, Eye, Plus, GripVertical, Sparkles, Lock } from 'lucide-react';
 import { useStore, useActivePage } from '../core/store';
+import { useShallow } from 'zustand/react/shallow';
 import { RenderContext } from '../core/render/editable';
 import { SiteSection } from '../core/render/SiteSection';
 import { generateSiteCSS } from '../core/siteCss';
@@ -20,7 +21,8 @@ export function SiteStyles() {
 
 export function Canvas() {
   const page = useActivePage();
-  const { device, zoom, preview, showGrid, select, moveSection, addSection, set } = useStore();
+  const { device, zoom, preview, showGrid } = useStore(useShallow((s) => ({ device: s.device, zoom: s.zoom, preview: s.preview, showGrid: s.showGrid })));
+  const { select, moveSection, addSection, set } = useStore.getState();
   const wrapRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(1);
@@ -28,6 +30,7 @@ export function Canvas() {
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [insertAt, setInsertAt] = useState<number | null>(null);
 
+  const onSectionDragEnd = useCallback(() => { setDragFrom(null); setDropIndex(null); }, []);
   const width = DEVICE_WIDTH[device];
   const fullBleed = preview && device === 'desktop';
 
@@ -106,9 +109,9 @@ export function Canvas() {
                     count={page.sections.length}
                     preview={preview}
                     dragging={dragFrom === i}
-                    onDragStart={() => setDragFrom(i)}
-                    onDragEnd={() => { setDragFrom(null); setDropIndex(null); }}
-                    onInsert={() => setInsertAt(i + 1)}
+                    onDragStart={setDragFrom}
+                    onDragEnd={onSectionDragEnd}
+                    onInsert={setInsertAt}
                   />
                 </FragmentWithDrop>
               ))}
@@ -144,12 +147,13 @@ interface CSProps {
   count: number;
   preview: boolean;
   dragging: boolean;
-  onDragStart: () => void;
+  onDragStart: (index: number) => void;
   onDragEnd: () => void;
-  onInsert: () => void;
+  onInsert: (index: number) => void;
 }
 
-function CanvasSection({ s, index, count, preview, dragging, onDragStart, onDragEnd, onInsert }: CSProps) {
+// Memoized: editing one section (or hovering it) must not re-render the others.
+const CanvasSection = memo(function CanvasSection({ s, index, count, preview, dragging, onDragStart, onDragEnd, onInsert }: CSProps) {
   const selected = useStore((st) => st.selectedId === s.id);
   const hovered = useStore((st) => st.hoverId === s.id);
   const { select, set, updateProp, moveSection, duplicateSection, removeSection, updateSection } = useStore.getState();
@@ -182,7 +186,7 @@ function CanvasSection({ s, index, count, preview, dragging, onDragStart, onDrag
             draggable
             title="Arrastar para reordenar"
             style={{ cursor: 'grab' }}
-            onDragStart={(e) => { e.dataTransfer.setData(DND_MOVE, String(index)); e.dataTransfer.effectAllowed = 'move'; onDragStart(); }}
+            onDragStart={(e) => { e.dataTransfer.setData(DND_MOVE, String(index)); e.dataTransfer.effectAllowed = 'move'; onDragStart(index); }}
             onDragEnd={onDragEnd}
           ><GripVertical size={14} /></button>
           <button title="Mover para cima (Alt+↑)" disabled={index === 0} onClick={stop(() => moveSection(index, index - 1))}><ArrowUp size={14} /></button>
@@ -196,10 +200,10 @@ function CanvasSection({ s, index, count, preview, dragging, onDragStart, onDrag
       <RenderContext.Provider value={ctx}>
         <SiteSection s={s} />
       </RenderContext.Provider>
-      <button className="add-between" title="Inserir seção abaixo" onClick={stop(onInsert)}><Plus size={15} /></button>
+      <button className="add-between" title="Inserir seção abaixo" onClick={stop(() => onInsert(index + 1))}><Plus size={15} /></button>
     </div>
   );
-}
+});
 
 function InsertMenu({ onPick, onClose }: { onPick: (t: SectionType) => void; onClose: () => void }) {
   useEffect(() => {

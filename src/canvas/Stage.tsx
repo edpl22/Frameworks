@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUp, ArrowDown, Copy, Trash2, Plus, Frame } from 'lucide-react';
 import { useStore, useActivePage } from '../core/store';
 import { RenderContext, DND_ASSET_TYPE } from '../core/render/editable';
@@ -207,10 +207,12 @@ function EmptyPage() {
   );
 }
 
-function CvSection({ s, index, count, dropTarget }: { s: Section; index: number; count: number; dropTarget: boolean }) {
+// Memoized: dragging or typing in one section must not re-render the others.
+const CvSection = memo(function CvSection({ s, index, count, dropTarget }: { s: Section; index: number; count: number; dropTarget: boolean }) {
   const selected = useStore((st) => st.selectedId === s.id);
   const elIds = useStore((st) => (st.elSel.sectionId === s.id ? st.elSel.ids : EMPTY));
-  const editingPath = useStore((st) => st.editingPath);
+  // Inline editing happens in the section that holds the element selection.
+  const editingPath = useStore((st) => (st.elSel.sectionId === s.id ? st.editingPath : null));
   const { updateProp, duplicateSection, removeSection } = useStore.getState();
   const isCanvas = s.type === 'canvas';
   const ctx = useMemo(() => ({
@@ -238,7 +240,7 @@ function CvSection({ s, index, count, dropTarget }: { s: Section; index: number;
       {index < count - 1 && <AddSection index={index + 1} />}
     </>
   );
-}
+});
 const EMPTY: string[] = [];
 
 function AddSection({ index, last }: { index: number; last?: boolean }) {

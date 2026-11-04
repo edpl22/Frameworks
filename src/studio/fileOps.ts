@@ -1,5 +1,5 @@
 import { useStore } from '../core/store';
-import { parseProjectFile, portableProjectJSON } from '../core/exporters';
+import { parseProjectFile, portableProjectJSON } from '../core/exportData';
 import { dataUrlToBlob, loadProjectBlobs, putBlob, useAssetUrls } from '../core/assets';
 import { desktop, pickTextFile, saveAs } from '../core/platform';
 

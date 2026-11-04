@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Sparkles, Copy, Download, Terminal, FileCode2, FileArchive, FileJson, Palette, Wind, Braces, FileText, Upload, CheckCircle2, AlertCircle, Info, Keyboard, LayoutTemplate, Search } from 'lucide-react';
 import { useStore, activePage } from '../core/store';
+import { useShallow } from 'zustand/react/shallow';
 import { generatePrompt, estimateTokens, DEFAULT_PROMPT_OPTIONS, STACKS, type PromptOptions } from '../core/prompt';
-import { exportPageHTML, exportZip, portableProjectJSON, designTokens, tailwindConfig, cssVarsFile, pageFileName, renderPageMarkup, dataUrlAssetResolver, relativeAssetResolver } from '../core/exporters';
+import { portableProjectJSON, designTokens, tailwindConfig, cssVarsFile, pageFileName, dataUrlAssetResolver, relativeAssetResolver } from '../core/exportData';
+import { TemplateThumb, templateMeta } from './TemplateThumb';
+
+// The HTML/ZIP exporters pull in react-dom/server, so they load only when needed.
+const loadExporters = () => import('../core/exporters');
 import { loadProjectBlobs } from '../core/assets';
-import { generateSiteCSS } from '../core/siteCss';
-import { TEMPLATES, TEMPLATE_CATEGORIES, projectFromTemplate, type TemplateCategory } from '../core/templates';
+import { TEMPLATES, TEMPLATE_CATEGORIES, type TemplateCategory } from '../core/templates';
 import { copyText, saveAs } from '../core/platform';
 import { Modal, Segmented, Toggle, Field, mod } from './ui';
 import { openProjectFile } from './fileOps';
@@ -41,7 +45,7 @@ function Highlight({ md }: { md: string }) {
 
 export function PromptModal() {
   const project = useStore((s) => s.project);
-  const { set, toast, setBrief } = useStore();
+  const { set, toast, setBrief } = useStore.getState();
   const [o, setO] = useState<PromptOptions>(DEFAULT_PROMPT_OPTIONS);
   const prompt = useMemo(() => generatePrompt(project, o), [project, o]);
   const tokens = estimateTokens(prompt);
@@ -99,10 +103,11 @@ export function PromptModal() {
 }
 
 export function ExportModal() {
-  const st = useStore();
-  const { project, toast, set } = st;
-  const page = activePage(st);
+  const { project, activePageId } = useStore(useShallow((s) => ({ project: s.project, activePageId: s.activePageId })));
+  const { toast, set } = useStore.getState();
+  const page = activePage({ project, activePageId });
   const base = slug(project.brief.projectName);
+  useEffect(() => { void loadExporters(); }, []); // warm the chunk so clicks stay instant
 
   const run = async (fn: () => Promise<string | null>, msg: string) => {
     try { const r = await fn(); if (r) toast(msg); } catch (e) { toast((e as Error).message, 'error'); }
@@ -110,9 +115,9 @@ export function ExportModal() {
 
   const items: { icon: ReactNode; title: string; desc: string; ext: string; action: () => void; featured?: boolean }[] = [
     { featured: true, icon: <FileArchive size={22} />, title: 'Pacote completo (.zip)', desc: 'Todas as páginas em HTML estático, CSS, design tokens, tema Tailwind, prompt do Claude Code e o arquivo do projeto — pronto para publicar ou evoluir.', ext: '.zip',
-      action: () => run(async () => saveAs(`${base}.zip`, await exportZip(project, undefined, await loadProjectBlobs(project)), 'application/zip'), 'Pacote exportado') },
+      action: () => run(async () => saveAs(`${base}.zip`, await (await loadExporters()).exportZip(project, undefined, await loadProjectBlobs(project)), 'application/zip'), 'Pacote exportado') },
     { icon: <FileCode2 size={18} />, title: 'Página atual em HTML', desc: `“${page.name}” como arquivo único, com CSS e imagens embutidos.`, ext: '.html',
-      action: () => run(async () => saveAs(pageFileName(page), exportPageHTML(project, page, { inlineCss: true, resolveAsset: await dataUrlAssetResolver(await loadProjectBlobs(project)) }), 'text/html'), 'HTML exportado') },
+      action: () => run(async () => saveAs(pageFileName(page), (await loadExporters()).exportPageHTML(project, page, { inlineCss: true, resolveAsset: await dataUrlAssetResolver(await loadProjectBlobs(project)) }), 'text/html'), 'HTML exportado') },
     { icon: <Sparkles size={18} />, title: 'Prompt Claude Code', desc: 'Especificação Markdown estruturada para gerar o projeto.', ext: '.md',
       action: () => run(() => saveAs('CLAUDE_PROMPT.md', generatePrompt(project), 'text/markdown'), 'Prompt exportado') },
     { icon: <FileJson size={18} />, title: 'Projeto', desc: 'Arquivo editável para reabrir no Frameworks Studio.', ext: '.fwstudio',
@@ -124,7 +129,7 @@ export function ExportModal() {
     { icon: <Palette size={18} />, title: 'CSS variables', desc: 'Custom properties prontas para qualquer stack.', ext: '.css',
       action: () => run(() => saveAs('tokens.css', cssVarsFile(project), 'text/css'), 'CSS exportado') },
     { icon: <FileText size={18} />, title: 'Copiar HTML', desc: 'Markup da página atual para a área de transferência.', ext: 'clip',
-      action: async () => { await copyText(renderPageMarkup(page, relativeAssetResolver(project))); toast('HTML copiado'); } },
+      action: async () => { await copyText((await loadExporters()).renderPageMarkup(page, relativeAssetResolver(project))); toast('HTML copiado'); } },
     { icon: <FigmaMark size={18} />, title: 'Importar tokens do Figma', desc: 'Variables, Tokens Studio, DTCG ou CSS → design system.', ext: 'figma',
       action: () => set({ modal: 'figma' }) },
     { icon: <Upload size={18} />, title: 'Importar projeto', desc: 'Abra um arquivo .fwstudio ou .json.', ext: 'open',
@@ -149,31 +154,10 @@ export function ExportModal() {
   );
 }
 
-// Template thumbnails are expensive to render, so they are cached for the session.
-let previewCache: { t: (typeof TEMPLATES)[number]; html: string; css: string; swatches: string[]; font: string; pages: number; sections: number }[] | null = null;
-export function templatePreviews() {
-  if (!previewCache) {
-    previewCache = TEMPLATES.map((t) => {
-      const p = projectFromTemplate(t);
-      const pg = p.pages[0];
-      const pal = p.theme.palette;
-      return {
-        t,
-        html: renderPageMarkup({ ...pg, sections: pg.sections.slice(0, 7) }),
-        css: generateSiteCSS(p.theme, `.tpl-${t.id} .fw-site`),
-        swatches: [pal.background, pal.primary, pal.secondary, pal.accent, pal.text],
-        font: `${p.theme.fontHeading} / ${p.theme.fontBody}`,
-        pages: p.pages.length,
-        sections: p.pages.reduce((n, x) => n + x.sections.length, 0),
-      };
-    });
-  }
-  return previewCache;
-}
 
 export function TemplatesModal() {
-  const { set, newFromTemplate } = useStore();
-  const previews = useMemo(templatePreviews, []);
+  const { set, newFromTemplate } = useStore.getState();
+  const previews = templateMeta();
   const [cat, setCat] = useState<TemplateCategory | 'Todos'>('Todos');
   const [tag, setTag] = useState<string | null>(null);
   const [q, setQ] = useState('');
@@ -227,13 +211,11 @@ export function TemplatesModal() {
             </div>
           </div>
           <div className="tpl-grid" ref={gridRef}>
-            {list.map(({ t, html, css, swatches, font, pages, sections }) => (
+            {list.map(({ t, swatches, font, pages, sections }) => (
               <button key={t.id} className="tpl" onClick={() => newFromTemplate(t.id)}>
-                <div className={`tpl-thumb tpl-${t.id}`}>
-                  <style>{css}</style>
-                  <div className="tpl-thumb-inner" dangerouslySetInnerHTML={{ __html: html }} />
+                <TemplateThumb t={t} className="tpl-thumb" innerClassName="tpl-thumb-inner" bg={swatches[0]}>
                   <span className="tpl-use">Usar template</span>
-                </div>
+                </TemplateThumb>
                 <div className="tpl-info">
                   <div className="tpl-row">
                     <h3>{t.name}</h3>

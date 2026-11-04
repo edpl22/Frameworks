@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Grid3x3, Download, Sparkles, Command, Minus, Plus, LayoutTemplate, FolderOpen, Save, SlidersHorizontal, MousePointer2 } from 'lucide-react';
 import { useStore } from '../core/store';
+import { useShallow } from 'zustand/react/shallow';
 import type { Device } from '../core/types';
 import { Segmented, mod } from './ui';
 import { isDesktop } from '../core/platform';
@@ -10,7 +11,11 @@ import { Logo } from '../ui/Logo';
 export { Logo } from '../ui/Logo';
 
 export function TopBar() {
-  const s = useStore();
+  const s = useStore(useShallow((x) => ({
+    device: x.device, dirty: x.dirty, fitScale: x.fitScale, mode: x.mode, preview: x.preview, showGrid: x.showGrid, zoom: x.zoom,
+    projectName: x.project.brief.projectName, canUndo: x.past.length > 0, canRedo: x.future.length > 0,
+    set: x.set, setBrief: x.setBrief, setMode: x.setMode, undo: x.undo, redo: x.redo,
+  })));
   const devices: { value: Device; icon: ReactNode; title: string }[] = [
     { value: 'desktop', icon: <Monitor size={14} />, title: 'Desktop (1440px)' },
     { value: 'tablet', icon: <Tablet size={14} />, title: 'Tablet (820px)' },
@@ -29,7 +34,7 @@ export function TopBar() {
         <button role="tab" aria-selected={s.mode === 'studio'} className={s.mode === 'studio' ? 'on' : ''} onClick={() => s.setMode('studio')} title="Studio: seções estruturadas, controle completo"><SlidersHorizontal size={13} /> Studio</button>
         <button role="tab" aria-selected={s.mode === 'canvas'} className={s.mode === 'canvas' ? 'on' : ''} onClick={() => s.setMode('canvas')} title="Canvas: arraste e solte livremente, estilo Canva"><MousePointer2 size={13} /> Canvas</button>
       </div>
-      <input className="project-name" value={s.project.brief.projectName} onChange={(e) => s.setBrief({ projectName: e.target.value })} aria-label="Nome do projeto" />
+      <input className="project-name" value={s.projectName} onChange={(e) => s.setBrief({ projectName: e.target.value })} aria-label="Nome do projeto" />
       {s.dirty && isDesktop() && <span className="dirty-dot" title="Alterações não salvas" />}
       <button className="btn btn-ghost btn-icon btn-sm tip" data-tip="Templates" onClick={() => s.set({ modal: 'templates' })} aria-label="Templates"><LayoutTemplate size={15} /></button>
       <button className="btn btn-ghost btn-icon btn-sm" title={`Abrir projeto (${mod}+O)`} onClick={openProjectFile} aria-label="Abrir"><FolderOpen size={15} /></button>
@@ -38,8 +43,8 @@ export function TopBar() {
       <div className="spacer" />
 
       <div className="tb-center">
-        <button className="btn btn-ghost btn-icon btn-sm" title={`Desfazer (${mod}+Z)`} disabled={!s.past.length} onClick={s.undo} aria-label="Desfazer"><Undo2 size={15} /></button>
-        <button className="btn btn-ghost btn-icon btn-sm" title={`Refazer (${mod}+Shift+Z)`} disabled={!s.future.length} onClick={s.redo} aria-label="Refazer"><Redo2 size={15} /></button>
+        <button className="btn btn-ghost btn-icon btn-sm" title={`Desfazer (${mod}+Z)`} disabled={!s.canUndo} onClick={s.undo} aria-label="Desfazer"><Undo2 size={15} /></button>
+        <button className="btn btn-ghost btn-icon btn-sm" title={`Refazer (${mod}+Shift+Z)`} disabled={!s.canRedo} onClick={s.redo} aria-label="Refazer"><Redo2 size={15} /></button>
         <div className="tb-sep" />
         <div style={{ width: 120 }}>
           <Segmented value={s.device} onChange={(d) => s.set({ device: d })} options={devices} />

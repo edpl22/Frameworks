@@ -7,7 +7,7 @@ import {
 } from '../core/tokensImport';
 import { contrastRatio, wcagLevel } from '../core/color';
 import { generateSiteCSS } from '../core/siteCss';
-import { renderPageMarkup } from '../core/exporters';
+import { StaticPage } from '../core/render/StaticPage';
 import { createSection } from '../core/factory';
 import { googleFontsHref } from '../core/theme';
 import { pickTextFile } from '../core/platform';
@@ -63,7 +63,7 @@ function Swatch({ c }: { c?: string }) {
 
 export function FigmaImportModal() {
   const project = useStore((s) => s.project);
-  const { set, commit, toast } = useStore();
+  const { set, commit, toast } = useStore.getState();
   const [text, setText] = useState('');
   const [sourceName, setSourceName] = useState('Arquivo do Figma');
   const [mode, setMode] = useState<string | undefined>();
@@ -109,7 +109,7 @@ export function FigmaImportModal() {
     feat.style = { ...feat.style, paddingY: 'sm', background: 'surface' };
     return {
       css: generateSiteCSS(theme, '.fi-preview .fw-site'),
-      html: renderPageMarkup({ id: 'p', name: 'p', slug: '/', seoTitle: '', seoDescription: '', sections: [hero, feat] }),
+      sections: [hero, feat],
       fonts: [theme.fontHeading, theme.fontBody],
     };
   }, [theme, project.brief.projectName]);
@@ -233,7 +233,7 @@ export function FigmaImportModal() {
                     <div className="fi-preview">
                       {preview.fonts.map((f) => <link key={f} rel="stylesheet" href={googleFontsHref([f])} />)}
                       <style>{preview.css}</style>
-                      <div className="fi-preview-inner" dangerouslySetInnerHTML={{ __html: preview.html }} />
+                      <div className="fi-preview-inner"><StaticPage sections={preview.sections} /></div>
                     </div>
                   )}
                   <div className="fi-chips">

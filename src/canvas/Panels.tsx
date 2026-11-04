@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { LayoutTemplate, Shapes, Type, Upload, Palette, Image as ImageIcon, Plus, Search } from 'lucide-react';
 import { useStore } from '../core/store';
 import { TEMPLATES } from '../core/templates';
@@ -7,7 +7,7 @@ import { SiteIcon } from '../core/icons';
 import { newElement } from '../core/canvas';
 import { MediaPanel } from '../studio/MediaPanel';
 import { ThemePanel } from '../studio/ThemePanel';
-import { templatePreviews } from '../studio/modals';
+import { TemplateThumb, templateMeta } from '../studio/TemplateThumb';
 import { addElement, addSectionPreset } from './ops';
 import { BUTTON_PRESETS, DND_ELEMENT, ICON_PICKS, SHAPE_PRESETS, elementFromKey } from './presets';
 
@@ -54,7 +54,7 @@ export function CanvasPanel({ tab }: { tab: CanvasTab }) {
 function TemplatesPanel() {
   const newFromTemplate = useStore((s) => s.newFromTemplate);
   const [q, setQ] = useState('');
-  const previews = useMemo(templatePreviews, []);
+  const previews = templateMeta();
   const term = q.trim().toLowerCase();
   const themed = previews.filter(({ t }) => t.mode === 'canvas');
   const list = (term ? previews : themed).filter(({ t }) => !term || `${t.name} ${t.description} ${t.tags.join(' ')} ${t.category}`.toLowerCase().includes(term));
@@ -64,12 +64,9 @@ function TemplatesPanel() {
       <div className="panel-body">
         <div className="search"><Search size={14} /><input className="input" placeholder={`Buscar entre ${TEMPLATES.length} templates…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <div className="cv-tpl-list">
-          {list.map(({ t, html, css, swatches }) => (
+          {list.map(({ t, swatches }) => (
             <button key={t.id} className="cv-tpl" onClick={() => newFromTemplate(t.id)} title={t.description}>
-              <div className={`cv-tpl-thumb tpl-${t.id}`}>
-                <style>{css}</style>
-                <div className="cv-tpl-inner" dangerouslySetInnerHTML={{ __html: html }} />
-              </div>
+              <TemplateThumb t={t} className="cv-tpl-thumb" innerClassName="cv-tpl-inner" bg={swatches[0]} />
               <div className="cv-tpl-info">
                 <b>{t.name}</b>
                 <span className="tpl-sw">{swatches.map((c, i) => <i key={i} style={{ background: c }} />)}</span>

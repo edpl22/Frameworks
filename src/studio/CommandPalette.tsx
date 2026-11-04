@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Search, Sparkles, Download, Undo2, Redo2, Eye, Monitor, Tablet, Smartphone, LayoutTemplate, Palette, FileText, Save, FolderOpen, Grid3x3, Keyboard, Plus, MousePointer2, Sun, Moon } from 'lucide-react';
 import { useStore, activePage } from '../core/store';
+import { useShallow } from 'zustand/react/shallow';
 import { SECTIONS, SECTION_MAP } from '../core/sections';
 import { THEME_PRESETS } from '../core/theme';
 import { TEMPLATES } from '../core/templates';
@@ -30,7 +31,7 @@ export function score(query: string, text: string): number {
 }
 
 export function CommandPalette() {
-  const st = useStore();
+  const st = useStore(useShallow((s) => ({ project: s.project, activePageId: s.activePageId, set: s.set })));
   const [q, setQ] = useState('');
   const [idx, setIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);

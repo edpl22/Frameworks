@@ -134,7 +134,7 @@ button { font: inherit; color: inherit; }
 .project-name:hover { border-color: var(--line-2); }
 .project-name:focus { outline: none; border-color: var(--brand); background: var(--bg-2); }
 .dirty-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 8px var(--warn); }
-.tb-center { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
+.tb-center { display: flex; align-items: center; gap: 8px; flex-shrink: 0; } /* sits between two spacers: centered, never overlapping */
 .zoom-label { font-family: var(--mono); font-size: 11px; color: var(--text-2); width: 44px; text-align: center; cursor: pointer; }
 
 /* Rail */
