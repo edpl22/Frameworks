@@ -1,5 +1,6 @@
 import type { Page, Project, Props, PropValue, Section, TargetStack } from './types';
-import { SECTION_MAP } from './sections';
+import { SECTION_MAP, str } from './sections';
+import { auditProject } from './audit';
 import { contrastRatio, tonalScale, wcagLevel } from './color';
 import { anchorId } from './render/SiteSection';
 import { FORMAT_LABEL, figmaTokensCss, tokenCount } from './tokensImport';
@@ -104,7 +105,7 @@ function sectionSpec(s: Section, idx: number, o: PromptOptions): string {
   const st = s.style;
   const parts = [
     `#### ${idx + 1}. ${s.name || def.label} — \`<${def.label.replace(/\s/g, '')} />\` · id \`#${anchorId(s)}\``,
-    `- **${L(o, 'Objetivo', 'Purpose')}:** ${def.intent}`,
+    `- **${L(o, 'Objetivo', 'Purpose')}:** ${s.type === 'custom' && str(s.props.spec).trim() ? `${L(o, 'Bloco personalizado — construa exatamente isto', 'Custom block — build exactly this')}: ${str(s.props.spec).trim()}` : def.intent}`,
     `- **${L(o, 'Layout', 'Layout')}:** ${variant}${s.type === 'features' && s.props.columns ? ` · ${s.props.columns} ${L(o, 'colunas', 'columns')}` : ''} · ${L(o, 'alinhamento', 'alignment')} ${st.align} · ${L(o, 'largura', 'width')} ${st.maxWidth}`,
     `- **${L(o, 'Fundo', 'Background')}:** ${bgLabel[st.background]}${st.backgroundImage ? ` (\`${st.backgroundImage}\`)` : ''}`,
     `- **${L(o, 'Espaçamento vertical', 'Vertical padding')}:** ${padLabel[st.paddingY]}${st.divider ? ` · ${L(o, 'borda superior divisória', 'top divider')}` : ''}`,
@@ -287,6 +288,16 @@ export function generatePrompt(project: Project, o: PromptOptions = DEFAULT_PROM
   out.push(q.join('\n'));
 
   if (b.extraInstructions.trim()) out.push(`## 7. ${L(o, 'Instruções adicionais', 'Additional instructions')}\n${b.extraInstructions.trim()}`);
+
+  // Known issues from the studio's quality audit, so Claude Code resolves them while building.
+  if (!concise) {
+    const pending = auditProject(project).issues.filter((i) => i.severity !== 'info').slice(0, 15);
+    if (pending.length) {
+      out.push(`## ${L(o, 'Pendências conhecidas', 'Known issues')}`);
+      out.push(L(o, 'A auditoria do Studio encontrou os pontos abaixo. Resolva-os durante a implementação:', 'The Studio audit flagged the points below. Resolve them while implementing:'));
+      out.push(pending.map((i) => `- **${i.category}:** ${i.message}${i.hint ? ` — ${i.hint}` : ''}`).join('\n'));
+    }
+  }
 
   if (o.includePlan) {
     out.push(`## ${L(o, 'Plano de execução', 'Execution plan')}`);

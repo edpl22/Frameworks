@@ -39,9 +39,9 @@ function createWindow() {
   });
 
   if (isDev) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL + '#/studio');
+    win.loadURL(process.env.VITE_DEV_SERVER_URL + '#studio');
   } else {
-    win.loadFile(join(__dirname, '../dist/index.html'), { hash: '/studio' });
+    win.loadFile(join(__dirname, '../dist/index.html'), { hash: 'studio' });
   }
 }
 

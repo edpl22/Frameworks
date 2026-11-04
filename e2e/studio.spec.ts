@@ -9,6 +9,10 @@ test.describe('landing', () => {
     await expect(page.locator('.lp-shot-site .fw-site')).toBeVisible({ timeout: 15_000 });
     await page.getByRole('link', { name: /Abrir Studio/ }).first().click();
     await expect(page.locator('.studio')).toBeVisible();
+    expect(new URL(page.url()).hash).toBe('#studio');
+    // the legacy route still works
+    await page.goto('/#/studio');
+    await expect(page.locator('.studio')).toBeVisible();
   });
 });
 
@@ -125,4 +129,30 @@ test.describe('studio', () => {
     await page.keyboard.press('Enter');
     await waitForSave(page, (p) => p.theme.fontHeading === 'Archivo Black');
   });
+
+  test('quality panel flags issues and fixes them in one click', async ({ page }) => {
+    await openStudio(page);
+    // break the SEO title of the page through the Pages panel
+    await page.locator('.rail button[aria-label="Páginas"]').click();
+    await page.locator('.field', { hasText: 'SEO title' }).locator('input').fill('');
+    await page.locator('.rail button[aria-label="Qualidade"]').click();
+    const issue = page.locator('.audit-item.error', { hasText: 'sem título de SEO' });
+    await expect(issue).toBeVisible();
+    await expect(page.locator('.rail-badge.err')).toBeVisible();
+    await issue.getByRole('button', { name: /Preencher/ }).click();
+    await expect(issue).toHaveCount(0);
+    await waitForSave(page, (p) => p.pages[0].seoTitle.includes('Aurora'));
+  });
+
+  test('custom block takes a free-form spec that reaches the prompt', async ({ page }) => {
+    await openStudio(page);
+    await page.locator('.lib-item', { hasText: 'Bloco personalizado' }).click();
+    const block = page.locator('.cs.sel');
+    await expect(block.locator('.fw-spec-note')).toBeVisible();
+    await page.locator('.rpanel .field', { hasText: 'O que este bloco deve ser?' }).locator('textarea').fill('Calculadora de economia com slider');
+    await expect(block.locator('.fw-spec-note')).toContainText('Calculadora de economia com slider');
+    await page.getByRole('button', { name: /Gerar prompt/ }).click();
+    await expect(page.locator('.prompt-preview pre')).toContainText('construa exatamente isto: Calculadora de economia com slider');
+  });
 });
+

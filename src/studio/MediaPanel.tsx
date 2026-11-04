@@ -23,6 +23,7 @@ export function MediaPanel() {
   const project = useStore((s) => s.project);
   const used = useMemo(() => new Set(collectAssetIds(project)), [project]);
   const [dragging, setDragging] = useState(false);
+  const [armed, setArmed] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const total = assets.reduce((n, a) => n + a.size, 0);
 
@@ -69,10 +70,21 @@ export function MediaPanel() {
                 className="media-del"
                 title="Excluir"
                 onClick={() => {
-                  if (used.has(a.id) && !window.confirm(`“${a.name}” está em uso no projeto. Excluir mesmo assim? As seções voltarão ao placeholder.`)) return;
+                  // In-page confirmation (native confirm() is blocked in some hosts, e.g. Claude Artifacts).
+                  if (used.has(a.id) && armed !== a.id) { setArmed(a.id); return; }
+                  setArmed(null);
                   removeAsset(a.id);
                 }}
               ><Trash2 size={12} /></button>
+              {armed === a.id && (
+                <div className="media-confirm">
+                  <span>Em uso no projeto. As seções voltam ao placeholder.</span>
+                  <div>
+                    <button className="btn btn-sm" onClick={() => setArmed(null)}>Cancelar</button>
+                    <button className="btn btn-sm btn-danger-solid" onClick={() => { setArmed(null); removeAsset(a.id); }}>Excluir</button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

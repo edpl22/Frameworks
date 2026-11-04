@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import {
   PanelTop, Sparkles, Building2, LayoutGrid, BarChart3, Columns2, Images, Quote, CreditCard, Users,
-  HelpCircle, Megaphone, Mail, Send, PanelBottom, Check, Menu, type LucideIcon,
+  HelpCircle, Megaphone, Mail, Send, PanelBottom, Check, Menu, Puzzle, type LucideIcon,
 } from 'lucide-react';
 import type { Field, Props, PropValue, Section, SectionStyle, SectionType } from './types';
-import { Editable, Img, Media } from './render/editable';
+import { Editable, Img, Media, useRender } from './render/editable';
 import { SiteIcon } from './icons';
 
 // ─── helpers ────────────────────────────────────────────────────
@@ -109,6 +109,18 @@ function AppWindow() {
 
 const item = (o: Props) => () => ({ ...o });
 
+/** Editor-only note showing the custom block's spec (never exported). */
+function CustomSpecNote({ spec }: { spec: string }) {
+  const { editable } = useRender();
+  if (!editable) return null;
+  return (
+    <div className="fw-spec-note">
+      <b>Bloco personalizado</b>
+      <span>{spec || 'Descreva no inspetor o que este bloco deve fazer — essa descrição vai para o prompt.'}</span>
+    </div>
+  );
+}
+
 // ─── registry ───────────────────────────────────────────────────
 export const SECTIONS: SectionDef[] = [
   {
@@ -172,7 +184,8 @@ export const SECTIONS: SectionDef[] = [
       ...headFields,
       ...btnFields,
       { key: 'proof', label: 'Prova social', kind: 'text' },
-      { key: 'image', label: 'Imagem (URL)', kind: 'image' },
+      { key: 'image', label: 'Imagem', kind: 'image' },
+      { key: 'imageAlt', label: 'Texto alternativo da imagem', kind: 'text', placeholder: 'Descreva a imagem para leitores de tela' },
       { key: 'showMockup', label: 'Mostrar mockup de app', kind: 'toggle' },
     ],
     defaults: () => ({
@@ -187,6 +200,7 @@ export const SECTIONS: SectionDef[] = [
       secondaryHref: '#',
       proof: '+12.000 empresas confiam em nós',
       image: '',
+      imageAlt: '',
       showMockup: true,
     }),
     render: ({ s, p }) => {
@@ -196,7 +210,7 @@ export const SECTIONS: SectionDef[] = [
       const proof = str(p.proof) && (
         <div className="fw-hero-proof"><div className="fw-avatars"><span /><span /><span /></div><E className="fw-muted" path="proof" value={str(p.proof)} /></div>
       );
-      const visual = str(p.image) ? <Media src={str(p.image)} path="image" /> : bool(p.showMockup) ? <AppWindow /> : null;
+      const visual = str(p.image) ? <Media src={str(p.image)} alt={str(p.imageAlt)} path="image" /> : bool(p.showMockup) ? <AppWindow /> : null;
       if (s.variant === 'split') {
         return (
           <div className="fw-split fw-hero-split" style={{ textAlign: 'left' }}>
@@ -355,7 +369,8 @@ export const SECTIONS: SectionDef[] = [
       ...headFields,
       { key: 'bullets', label: 'Checklist', kind: 'list', itemLabel: 'Item', fields: [{ key: 'text', label: 'Texto', kind: 'text' }], newItem: item({ text: 'Novo benefício' }) },
       ...btnFields,
-      { key: 'image', label: 'Imagem (URL)', kind: 'image' },
+      { key: 'image', label: 'Imagem', kind: 'image' },
+      { key: 'imageAlt', label: 'Texto alternativo da imagem', kind: 'text', placeholder: 'Descreva a imagem para leitores de tela' },
       { key: 'showMockup', label: 'Usar mockup de app', kind: 'toggle' },
     ],
     defaults: () => ({
@@ -364,7 +379,7 @@ export const SECTIONS: SectionDef[] = [
       subtitle: 'Centralize operações, elimine retrabalho e entregue experiências que encantam seus clientes desde o primeiro clique.',
       bullets: [{ text: 'Onboarding guiado em menos de 5 minutos' }, { text: 'Integrações com +200 ferramentas' }, { text: 'Suporte humano 24/7 em português' }],
       primaryLabel: 'Saiba mais', primaryHref: '#', secondaryLabel: '', secondaryHref: '',
-      image: '', showMockup: false,
+      image: '', imageAlt: '', showMockup: false,
     }),
     render: ({ s, p }) => (
       <div className={`fw-split ${s.variant === 'image-left' ? 'fw-reverse' : ''}`}>
@@ -375,7 +390,7 @@ export const SECTIONS: SectionDef[] = [
           </ul>
           <Actions p={p} />
         </div>
-        <div>{bool(p.showMockup) && !str(p.image) ? <AppWindow /> : <Media src={str(p.image)} path="image" />}</div>
+        <div>{bool(p.showMockup) && !str(p.image) ? <AppWindow /> : <Media src={str(p.image)} alt={str(p.imageAlt)} path="image" />}</div>
       </div>
     ),
   },
@@ -659,6 +674,66 @@ export const SECTIONS: SectionDef[] = [
         {str(p.note) && <E as="p" className="fw-muted fw-small" path="note" value={str(p.note)} />}
       </>
     ),
+  },
+  {
+    type: 'custom',
+    label: 'Bloco personalizado',
+    description: 'Descreva qualquer seção — o Claude Code constrói',
+    category: 'Conteúdo',
+    icon: Puzzle,
+    intent: 'Custom block described by the author (see the "spec" field). Build exactly what it describes, consistent with the design system; the static layout here is only a placeholder.',
+    variants: [{ id: 'text', label: 'Texto livre' }, { id: 'split', label: 'Com mídia' }, { id: 'cards', label: 'Cards' }],
+    defaultStyle: { paddingY: 'lg', align: 'center', animation: 'fade' },
+    fields: [
+      { key: 'spec', label: 'O que este bloco deve ser?', kind: 'textarea', placeholder: 'Ex.: calculadora de economia com slider de funcionários e resultado em reais; mapa interativo das lojas; linha do tempo da empresa…' },
+      ...headFields,
+      { key: 'image', label: 'Imagem', kind: 'image' },
+      { key: 'imageAlt', label: 'Texto alternativo da imagem', kind: 'text' },
+      { key: 'items', label: 'Cards', kind: 'list', itemLabel: 'Card', fields: [{ key: 'icon', label: 'Ícone', kind: 'icon' }, { key: 'title', label: 'Título', kind: 'text' }, { key: 'text', label: 'Texto', kind: 'textarea' }], newItem: item({ icon: 'sparkles', title: 'Item', text: 'Descrição curta.' }) },
+      ...btnFields,
+    ],
+    defaults: () => ({
+      spec: '',
+      eyebrow: 'Sob medida',
+      title: 'Um bloco *do seu jeito*',
+      subtitle: 'Descreva no inspetor o que este bloco deve fazer — interações, dados, integrações. O Claude Code constrói a partir da sua descrição.',
+      image: '', imageAlt: '',
+      items: [
+        { icon: 'sparkles', title: 'Primeiro item', text: 'Descrição curta.' },
+        { icon: 'zap', title: 'Segundo item', text: 'Descrição curta.' },
+        { icon: 'target', title: 'Terceiro item', text: 'Descrição curta.' },
+      ],
+      primaryLabel: '', primaryHref: '', secondaryLabel: '', secondaryHref: '',
+    }),
+    render: ({ s, p }) => {
+      const spec = str(p.spec).trim();
+      const body = s.variant === 'split' ? (
+        <div className="fw-split" style={{ textAlign: 'left' }}>
+          <div><Head p={p} /><Actions p={p} /></div>
+          <Media src={str(p.image)} alt={str(p.imageAlt)} path="image" />
+        </div>
+      ) : s.variant === 'cards' ? (
+        <>
+          <Head p={p} />
+          <div className="fw-grid fw-cols-3" style={{ textAlign: 'left' }}>
+            {list(p.items).map((it, i) => (
+              <div className="fw-card" key={i}>
+                <div className="fw-icon"><SiteIcon name={str(it.icon)} /></div>
+                <E as="h3" className="fw-h3" path={`items.${i}.title`} value={str(it.title)} />
+                <E as="p" className="fw-muted" path={`items.${i}.text`} value={str(it.text)} multiline />
+              </div>
+            ))}
+          </div>
+          <Actions p={p} />
+        </>
+      ) : (<><Head p={p} /><Actions p={p} /></>);
+      return (
+        <>
+          {body}
+          <CustomSpecNote spec={spec} />
+        </>
+      );
+    },
   },
   {
     type: 'footer',

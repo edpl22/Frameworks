@@ -8,7 +8,7 @@ export async function openStudio(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)/.test(m.text())) errors.push(m.text()); });
-  await page.goto('/#/studio');
+  await page.goto('/#studio');
   await expect(page.locator('.studio')).toBeVisible();
   await expect(page.locator('.fw-site > .cs').first()).toBeVisible();
   return errors;
