@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Desktop packaging is not part of CI; skip the Electron binary download.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+jobs:
+  test-build:
+    name: Testes & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Testes (Vitest)
+        run: npm test
+
+      - name: Typecheck + build web
+        run: npm run build
+
+      - name: Compilar processo do Electron
+        run: npm run electron:compile
+
+      - name: Publicar build web
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist
+          retention-days: 7
+
+  docker:
+    name: Docker build & smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: frameworks-studio:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test do container
+        run: |
+          docker run -d --name fw -p 8080:8080 frameworks-studio:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/healthz >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://localhost:8080/healthz
+          curl -fsS http://localhost:8080/ | grep -q '<div id="root">'
+          curl -fsSI http://localhost:8080/ | grep -qi '^content-security-policy:'
+          curl -fsSI http://localhost:8080/ | grep -qi '^x-content-type-options: nosniff'
+          echo "Container respondeu com a aplicação e os headers de segurança."
+
+      - name: Logs do container
+        if: always()
+        run: docker logs fw || true
