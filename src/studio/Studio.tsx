@@ -8,6 +8,7 @@ import { Canvas, SiteStyles } from './Canvas';
 import { RightPanel } from './Inspector';
 import { PromptModal, ExportModal, TemplatesModal, ShortcutsModal, Toasts } from './modals';
 import { CommandPalette } from './CommandPalette';
+import { FigmaImportModal } from './FigmaImport';
 import { openProjectFile, saveProject } from './fileOps';
 
 function isTyping(e: KeyboardEvent) {
@@ -102,6 +103,20 @@ function useDesktopBridge() {
 }
 
 function useFonts() {
+  const heading = useStore((s) => s.project.theme.fontHeading);
+  const body = useStore((s) => s.project.theme.fontBody);
+  // Fonts that came from Figma may not be in the built-in list.
+  useEffect(() => {
+    for (const f of [heading, body]) {
+      const id = 'fw-font-' + f.replace(/\W+/g, '-');
+      if (document.getElementById(id)) continue;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = googleFontsHref([f]);
+      document.head.appendChild(link);
+    }
+  }, [heading, body]);
   useEffect(() => {
     // One stylesheet per family: a single unavailable font can't break the others.
     for (const f of ALL_FONTS) {
@@ -136,6 +151,7 @@ export function Studio() {
       {modal === 'export' && <ExportModal />}
       {modal === 'templates' && <TemplatesModal />}
       {modal === 'shortcuts' && <ShortcutsModal />}
+      {modal === 'figma' && <FigmaImportModal />}
       {palette && <CommandPalette />}
       <Toasts />
     </div>

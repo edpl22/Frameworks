@@ -6,6 +6,7 @@ import { SiteSection } from './render/SiteSection';
 import { cssVariables, generateSiteCSS } from './siteCss';
 import { googleFontsHref } from './theme';
 import { tonalScale } from './color';
+import { figmaTokensCss } from './tokensImport';
 import { generatePrompt, DEFAULT_PROMPT_OPTIONS, type PromptOptions } from './prompt';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -52,7 +53,7 @@ export function exportPageHTML(project: Project, page: Page, opts: { inlineCss?:
 <meta name="generator" content="Frameworks Studio" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="${googleFontsHref([t.fontHeading, t.fontBody])}" />
+${Array.from(new Set([t.fontHeading, t.fontBody])).map((f) => `<link rel="stylesheet" href="${googleFontsHref([f])}" />`).join('\n')}
 ${opts.inlineCss ? `<style>\nhtml,body{margin:0;scroll-behavior:smooth}\n${css}</style>` : '<link rel="stylesheet" href="./assets/site.css" />'}
 </head>
 <body>
@@ -140,6 +141,10 @@ export async function exportZip(project: Project, promptOptions: PromptOptions =
   zip.file('design/tokens.css', cssVarsFile(project));
   zip.file('design/tailwind-theme.css', tailwindConfig(project));
   zip.file('CLAUDE_PROMPT.md', generatePrompt(project, promptOptions));
+  if (project.figma) {
+    zip.file('design/figma-tokens.css', figmaTokensCss(project.figma));
+    zip.file('design/figma-tokens.json', JSON.stringify(project.figma, null, 2));
+  }
   zip.file('project.fwstudio', projectJSON(project));
   zip.file('README.md', `# ${project.brief.projectName}
 

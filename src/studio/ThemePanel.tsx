@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Shuffle, Wand2, Sun, Moon } from 'lucide-react';
+import { Shuffle, Wand2, Sun, Moon, Upload } from 'lucide-react';
+import { FigmaMark } from './FigmaImport';
 import { useStore } from '../core/store';
 import { FONT_PAIRS, ALL_FONTS, THEME_PRESETS } from '../core/theme';
 import { contrastRatio, harmonyPalette, randomSeed, wcagLevel, type Harmony } from '../core/color';
@@ -19,6 +20,8 @@ function ContrastBadge({ fg, bg }: { fg: string; bg: string }) {
 
 export function ThemePanel() {
   const theme = useStore((s) => s.project.theme);
+  const figma = useStore((s) => s.project.figma);
+  const openFigma = () => useStore.getState().set({ modal: 'figma' });
   const { setTheme, setPalette, applyPreset, commit } = useStore();
   const [seed, setSeed] = useState(theme.palette.primary);
   const [harmony, setHarmony] = useState<Harmony>('analogous');
@@ -26,10 +29,19 @@ export function ThemePanel() {
   const pal = theme.palette;
   const pairId = FONT_PAIRS.find((p) => p.heading === theme.fontHeading && p.body === theme.fontBody)?.id ?? 'custom';
 
+  const fontOptions = Array.from(new Set([...ALL_FONTS, theme.fontHeading, theme.fontBody, ...(figma?.tokens.fonts.map((f) => f.value) ?? [])])).sort().map((f) => ({ value: f, label: f }));
   const applyGenerated = (p: Palette) => commit((pr) => ({ ...pr, theme: { ...pr.theme, palette: p } }));
 
   return (
     <div className="panel-body" style={{ paddingTop: 14 }}>
+      <button className="figma-cta" onClick={openFigma}>
+        <FigmaMark />
+        <span style={{ flex: 1, textAlign: 'left' }}>
+          <b>{figma ? 'Tokens do Figma conectados' : 'Importar tokens do Figma'}</b>
+          <small>{figma ? `${figma.source}${figma.mode ? ' · ' + figma.mode : ''}` : 'Variables, Tokens Studio, DTCG ou CSS'}</small>
+        </span>
+        <Upload size={14} />
+      </button>
       <div className="group">
         <div className="group-title">Presets</div>
         <div className="preset-grid">
@@ -93,8 +105,8 @@ export function ThemePanel() {
             options={[...FONT_PAIRS.map((p) => ({ value: p.id, label: `${p.label} — ${p.vibe}` })), ...(pairId === 'custom' ? [{ value: 'custom', label: 'Personalizada' }] : [])]} />
         </Field>
         <div className="grid-2">
-          <Field label="Títulos"><Select value={theme.fontHeading} onChange={(v) => setTheme({ fontHeading: v })} options={ALL_FONTS.map((f) => ({ value: f, label: f }))} /></Field>
-          <Field label="Corpo"><Select value={theme.fontBody} onChange={(v) => setTheme({ fontBody: v })} options={ALL_FONTS.map((f) => ({ value: f, label: f }))} /></Field>
+          <Field label="Títulos"><Select value={theme.fontHeading} onChange={(v) => setTheme({ fontHeading: v })} options={fontOptions} /></Field>
+          <Field label="Corpo"><Select value={theme.fontBody} onChange={(v) => setTheme({ fontBody: v })} options={fontOptions} /></Field>
         </div>
         <Field label="Tamanho base"><Slider value={theme.baseSize} min={14} max={20} onChange={(v) => setTheme({ baseSize: v })} format={(v) => `${v}px`} /></Field>
         <Field label="Escala tipográfica">

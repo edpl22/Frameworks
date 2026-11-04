@@ -352,6 +352,34 @@ button { font: inherit; color: inherit; }
 .tpl-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
 .tpl-tags span { font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); color: var(--text-2); border: 1px solid var(--line); }
 
+/* Figma import */
+.figma-cta { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; margin-bottom: 6px; border-radius: 12px; border: 1px solid rgba(162, 89, 255, 0.35); background: linear-gradient(120deg, rgba(162, 89, 255, 0.14), rgba(26, 188, 254, 0.08)); color: var(--text); cursor: pointer; transition: border-color .2s, transform .2s; }
+.figma-cta:hover { border-color: rgba(162, 89, 255, 0.7); transform: translateY(-1px); }
+.figma-cta b { display: block; font-size: 12.5px; }
+.figma-cta small { display: block; font-size: 11px; color: var(--text-3); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
+.fi-layout { display: grid; grid-template-columns: 360px 1fr; height: min(76vh, 780px); }
+.fi-input { border-right: 1px solid var(--line); padding: 18px; overflow: auto; }
+.fi-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding: 22px 16px; border: 1.5px dashed var(--line-2); border-radius: 14px; background: var(--bg-2); color: var(--text-2); margin-bottom: 16px; transition: border-color .15s, background .15s; }
+.fi-drop svg { color: #c4b5fd; }
+.fi-drop b { color: var(--text); font-size: 13px; }
+.fi-drop > span { font-size: 11.5px; color: var(--text-3); }
+.fi-drop.on { border-color: var(--brand); background: rgba(139, 92, 246, 0.1); }
+.fi-error { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; background: rgba(248, 113, 113, 0.1); color: var(--err); font-size: 12.5px; margin-bottom: 12px; }
+.fi-help { font-size: 12px; color: var(--text-3); line-height: 1.55; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02); }
+.fi-help b { color: var(--text-2); }
+.fi-help ul { margin: 6px 0 0; padding-left: 16px; display: grid; gap: 5px; }
+.fi-map { padding: 18px 22px; overflow: auto; }
+.fi-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.fi-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 26px; }
+.fi-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.fi-row .select { flex: 1; min-width: 0; font-size: 12px; padding-top: 6px; padding-bottom: 6px; }
+.fi-role { width: 84px; flex: none; font-size: 12px; color: var(--text-2); }
+.fi-swatch { width: 22px; height: 22px; border-radius: 6px; flex: none; border: 1px solid rgba(255, 255, 255, 0.15); display: block; }
+.fi-preview { border-radius: 12px; overflow: hidden; border: 1px solid var(--line-2); height: 330px; position: relative; }
+.fi-preview-inner { width: 1200px; transform: scale(.36); transform-origin: top left; pointer-events: none; }
+.fi-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; align-items: center; }
+.fi-chips i { width: 18px; height: 18px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.12); }
+
 /* Command palette */
 .cmdk-backdrop { position: fixed; inset: 0; z-index: 120; background: rgba(3, 3, 8, 0.6); backdrop-filter: blur(6px); display: flex; justify-content: center; padding-top: 14vh; animation: fadeIn .15s; }
 .cmdk { width: min(640px, calc(100% - 32px)); background: rgba(16, 16, 25, 0.98); border: 1px solid var(--line-2); border-radius: 16px; box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7), 0 0 80px -20px rgba(139, 92, 246, 0.35); overflow: hidden; align-self: flex-start; animation: pop .18s; }

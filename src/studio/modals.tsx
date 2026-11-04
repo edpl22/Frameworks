@@ -8,6 +8,7 @@ import { TEMPLATES, TEMPLATE_CATEGORIES, projectFromTemplate, type TemplateCateg
 import { copyText, saveAs } from '../core/platform';
 import { Modal, Segmented, Toggle, Field, mod } from './ui';
 import { openProjectFile } from './fileOps';
+import { FigmaMark } from './FigmaImport';
 
 const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'site';
 
@@ -123,6 +124,8 @@ export function ExportModal() {
       action: () => run(() => saveAs('tokens.css', cssVarsFile(project), 'text/css'), 'CSS exportado') },
     { icon: <FileText size={18} />, title: 'Copiar HTML', desc: 'Markup da página atual para a área de transferência.', ext: 'clip',
       action: async () => { await copyText(renderPageMarkup(page)); toast('HTML copiado'); } },
+    { icon: <FigmaMark size={18} />, title: 'Importar tokens do Figma', desc: 'Variables, Tokens Studio, DTCG ou CSS → design system.', ext: 'figma',
+      action: () => set({ modal: 'figma' }) },
     { icon: <Upload size={18} />, title: 'Importar projeto', desc: 'Abra um arquivo .fwstudio ou .json.', ext: 'open',
       action: () => { set({ modal: null }); openProjectFile(); } },
   ];

@@ -2,6 +2,7 @@ import type { Page, Project, Props, PropValue, Section, TargetStack } from './ty
 import { SECTION_MAP } from './sections';
 import { contrastRatio, tonalScale, wcagLevel } from './color';
 import { anchorId } from './render/SiteSection';
+import { FORMAT_LABEL, figmaTokensCss, tokenCount } from './tokensImport';
 
 export interface PromptOptions {
   detail: 'concise' | 'standard' | 'exhaustive';
@@ -151,6 +152,22 @@ export function tokensBlock(p: Project): string {
   ].join('\n');
 }
 
+function figmaBlock(p: Project, o: PromptOptions): string {
+  const f = p.figma!;
+  const LIMIT = o.detail === 'exhaustive' ? Infinity : 60;
+  const total = tokenCount(f.tokens);
+  const roles = Object.entries(f.mapping).filter(([, v]) => v).map(([k, v]) => `| \`${k}\` | \`${v}\` |`);
+  return [
+    `### ${L(o, 'Tokens originais do Figma', 'Original Figma tokens')}`,
+    L(o,
+      `Os tokens acima foram importados de **${f.source}** (${FORMAT_LABEL[f.format]}${f.mode ? `, modo “${f.mode}”` : ''}). O arquivo do Figma é a fonte de verdade: **preserve os nomes originais** como CSS variables / chaves do tema Tailwind e use os aliases semânticos abaixo, para que código e design continuem sincronizados.`,
+      `The tokens above were imported from **${f.source}** (${FORMAT_LABEL[f.format]}${f.mode ? `, mode “${f.mode}”` : ''}). The Figma file is the source of truth: **keep the original names** as CSS variables / Tailwind theme keys and use the semantic aliases below so code and design stay in sync.`),
+    [`| ${L(o, 'Papel', 'Role')} | Token Figma |`, '|---|---|', ...roles].join('\n'),
+    '```css\n' + figmaTokensCss(f, LIMIT).trimEnd() + '\n```',
+    total > LIMIT * 4 ? L(o, `> Lista resumida: ${total} tokens no total — veja \`design/figma-tokens.css\` no pacote exportado.`, `> Truncated: ${total} tokens in total — see \`design/figma-tokens.css\` in the exported bundle.`) : '',
+  ].filter(Boolean).join('\n\n');
+}
+
 function contrastReport(p: Project, o: PromptOptions): string {
   const pal = p.theme.palette;
   const pairs: [string, string, string][] = [
@@ -206,6 +223,7 @@ export function generatePrompt(p: Project, o: PromptOptions = DEFAULT_PROMPT_OPT
   ].join('\n'));
   if (o.includeTokens) {
     out.push(`### ${L(o, 'Tokens', 'Tokens')}\n${tokensBlock(p)}`);
+    if (p.figma) out.push(figmaBlock(p, o));
     if (!concise) out.push(`### ${L(o, 'Acessibilidade de cor', 'Color accessibility')}\n${contrastReport(p, o)}`);
   }
 

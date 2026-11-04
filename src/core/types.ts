@@ -109,6 +109,8 @@ export interface Project {
   brief: Brief;
   theme: Theme;
   pages: Page[];
+  /** Design tokens imported from Figma (original names are forwarded to the prompt). */
+  figma?: import('./tokensImport').FigmaImport;
 }
 
 // ─── Schema used to auto-generate the inspector ────────────────

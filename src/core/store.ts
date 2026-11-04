@@ -10,7 +10,7 @@ const COALESCE_MS = 700;
 
 export type LeftTab = 'library' | 'layers' | 'pages';
 export type RightTab = 'inspector' | 'theme' | 'brief';
-export type Modal = null | 'prompt' | 'export' | 'templates' | 'shortcuts';
+export type Modal = null | 'prompt' | 'export' | 'templates' | 'shortcuts' | 'figma';
 
 interface Toast { id: string; text: string; tone: 'ok' | 'info' | 'error' }
 
