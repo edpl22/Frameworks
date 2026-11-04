@@ -1,6 +1,8 @@
-import type { Brief, Page, Project, Props, SectionStyle, SectionType, Theme } from './types';
+import type { Brief, Page, Project, Props, PropValue, SectionStyle, SectionType, Theme } from './types';
 import { createPage, createSection, DEFAULT_BRIEF, uid } from './factory';
 import { DEFAULT_THEME, THEME_PRESETS } from './theme';
+import { elId, type CanvasEl } from './canvas';
+import { THEMED_TEMPLATES } from './templatesThemed';
 
 // ─── Template catalog ───────────────────────────────────────────
 // Original layouts that follow the most popular website-kit categories and
@@ -9,6 +11,7 @@ import { DEFAULT_THEME, THEME_PRESETS } from './theme';
 // copy, theme preset, brief and — when useful — multiple pages.
 
 export type TemplateCategory =
+  | 'Temáticos'
   | 'SaaS & Tech'
   | 'Portfólio & Agência'
   | 'Negócios locais'
@@ -19,7 +22,7 @@ export type TemplateCategory =
   | 'Básico';
 
 export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
-  'SaaS & Tech', 'Portfólio & Agência', 'E-commerce & Marca', 'Negócios locais', 'Eventos & Educação', 'Institucional', 'Mobile', 'Básico',
+  'Temáticos', 'SaaS & Tech', 'Portfólio & Agência', 'E-commerce & Marca', 'Negócios locais', 'Eventos & Educação', 'Institucional', 'Mobile', 'Básico',
 ];
 
 type Entry = SectionType | { t: SectionType; v?: string; style?: Partial<SectionStyle>; props?: Props; name?: string; notes?: string };
@@ -41,6 +44,8 @@ export interface Template {
   preset: string;
   brief: Partial<Brief>;
   pages: TemplatePage[];
+  /** Built from free-form sections: opens straight into the Canvas editor. */
+  mode?: 'canvas';
 }
 
 // ─── content helpers ────────────────────────────────────────────
@@ -60,7 +65,7 @@ const nav = (l: [string, string][], ctaLabel: string, ctaHref = '#'): Entry => (
 const footer = (blurb: string, c: [string, string[]][], v = 'columns', style?: Partial<SectionStyle>): Entry => ({ t: 'footer', v, style, props: { blurb, columns: cols(...c) } });
 
 // ─── catalog ────────────────────────────────────────────────────
-export const TEMPLATES: Template[] = [
+const BASE_TEMPLATES: Template[] = [
   // ══ SaaS & Tech ═══════════════════════════════════════════════
   {
     id: 'saas',
@@ -522,6 +527,13 @@ export const TEMPLATES: Template[] = [
   },
 ];
 
+/** Every template: the structured catalog, then the themed Canvas ones (blank stays last). */
+export const TEMPLATES: Template[] = [
+  ...BASE_TEMPLATES.filter((t) => t.id !== 'blank'),
+  ...THEMED_TEMPLATES,
+  ...BASE_TEMPLATES.filter((t) => t.id === 'blank'),
+];
+
 // ─── instantiation ──────────────────────────────────────────────
 const COPY_KEYS = ['eyebrow', 'subtitle', 'badge', 'badgeTag', 'proof', 'secondaryLabel', 'note'];
 export function projectFromTemplate(tpl: Template): Project {
@@ -538,6 +550,9 @@ export function projectFromTemplate(tpl: Template): Project {
         // demo text (e.g. the generic subtitle) from the section defaults.
         for (const k of COPY_KEYS) if (k in s.props && !(k in e.props)) s.props[k] = '';
         s.props = { ...s.props, ...structuredClone(e.props) };
+      }
+      if (e.t === 'canvas' && Array.isArray(s.props.elements)) {
+        s.props.elements = (s.props.elements as unknown as CanvasEl[]).map((x) => ({ ...x, id: elId() })) as unknown as PropValue;
       }
       if (e.name) s.name = e.name;
       if (e.notes) s.notes = e.notes;

@@ -68,6 +68,15 @@ function SectionInspector({ s }: { s: Section }) {
         <button className="btn btn-ghost btn-icon btn-sm btn-danger" title="Excluir" disabled={s.locked} onClick={() => removeSection(s.id)}><Trash2 size={14} /></button>
       </div>
       <div className="panel-body">
+        {s.type === 'canvas' && (
+          <div className="group">
+            <div className="canvas-cta">
+              <b>Seção livre</b>
+              <span>Mova, redimensione e adicione elementos livremente no modo Canvas. Aqui você ajusta altura, fundo e espaçamento.</span>
+              <button className="btn btn-primary btn-sm" onClick={() => { useStore.getState().setMode('canvas'); useStore.setState({ elSel: { sectionId: s.id, ids: [] }, selectedId: s.id }); }}>Editar no modo Canvas</button>
+            </div>
+          </div>
+        )}
         {def.variants.length > 1 && (
           <div className="group">
             <div className="group-title">Layout</div>

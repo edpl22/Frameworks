@@ -426,6 +426,10 @@ button { font: inherit; color: inherit; }
 .fw-media:hover .fw-media-upload, .fw-media-over .fw-media-upload { opacity: 1; }
 .fw-media-over { outline: 3px solid #8b5cf6; outline-offset: -3px; }
 
+.canvas-cta { display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.4); background: linear-gradient(120deg, rgba(139, 92, 246, 0.14), rgba(34, 211, 238, 0.06)); font-size: 12px; color: var(--text-2); }
+.canvas-cta b { color: var(--text); font-size: 13px; }
+.studio.is-canvas .studio-body { display: none; }
+
 /* Quality audit */
 .rail-badge { position: absolute; top: 3px; right: 3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--warn); color: #1a1200; font-size: 9.5px; font-weight: 700; display: grid; place-items: center; line-height: 1; }
 .rail-badge.err { background: var(--err); color: #fff; }

@@ -37,6 +37,7 @@ export function cssVariables(t: Theme): Record<string, string> {
     '--fw-dark-fg': '#ffffff',
     '--fw-font-heading': `'${t.fontHeading}', ui-serif, Georgia, system-ui, sans-serif`,
     '--fw-font-body': `'${t.fontBody}', ui-sans-serif, system-ui, -apple-system, sans-serif`,
+    '--fw-font-mono': `'JetBrains Mono', 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, monospace`,
     '--fw-base': `${t.baseSize}px`,
     '--fw-scale': String(t.scale),
     '--fw-radius': `${t.radius}px`,
@@ -110,9 +111,9 @@ function rawSiteCSS(t: Theme): string {
   const h1 = +Math.min(104, Math.max(64, b * s ** 6.5)).toFixed(1);
   const h2 = +Math.min(64, Math.max(40, b * s ** 4.5)).toFixed(1);
   const h3 = +(b * s ** 1.5).toFixed(1);
-  const serifHeading = /Serif|Playfair|Fraunces|Cormorant|Lora|Gloock/.test(t.fontHeading);
+  const serifHeading = /Serif|Playfair|Fraunces|Cormorant|Lora|Gloock|Cinzel/.test(t.fontHeading);
   // Display faces that ship one weight must not be faux-bolded.
-  const singleWeight = /Archivo Black|Bebas Neue|Gloock|Young Serif|Instrument Serif|DM Serif Display/.test(t.fontHeading);
+  const singleWeight = /Archivo Black|Bebas Neue|Gloock|Young Serif|Instrument Serif|DM Serif Display|Press Start 2P|Share Tech Mono|Righteous/.test(t.fontHeading);
   const condensed = /Bebas Neue/.test(t.fontHeading);
   const hWeight = singleWeight ? 400 : serifHeading ? 500 : 700;
   const h1Track = condensed ? '0.005em' : serifHeading ? '-0.01em' : '-0.035em';
@@ -363,6 +364,31 @@ textarea.fw-input{min-height:130px;resize:vertical}
 .fw-socials a{width:36px;height:36px;border-radius:50%;border:1px solid var(--fw-border);display:grid;place-items:center}
 .fw-socials svg{width:16px;height:16px}
 
+/* ── Free-form section (12-column grid) ── */
+.fw-canvas{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(12px,2cqi,24px);text-align:left}
+.fw-el{position:relative;min-width:0;min-height:0}
+.fw-el-h,.fw-el-p{margin:0}
+.fw-el-h{font-family:var(--fw-font-heading);line-height:1.05;letter-spacing:${serifHeading ? '-0.01em' : '-0.03em'};font-weight:${hWeight};text-wrap:balance}
+.fw-el-p{line-height:1.6}
+.fw-t-display{font-size:clamp(40px,7.2cqi,112px);line-height:.98}
+.fw-t-xl{font-size:clamp(32px,4.6cqi,68px)}
+.fw-t-lg{font-size:clamp(24px,2.8cqi,40px);line-height:1.15}
+.fw-t-md{font-size:1.12em}
+.fw-t-sm{font-size:.95em}
+.fw-t-xs{font-size:.78em;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.fw-el-h em{font-style:${serifHeading ? 'italic' : 'normal'};background:linear-gradient(120deg,var(--fw-primary),var(--fw-accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.fw-el-button{align-self:start}
+.fw-el-button .fw-btn{width:100%}
+.fw-el-badge{align-self:start;display:inline-flex;align-items:center;justify-content:center;padding:.45em 1em;border-radius:999px;font-size:.8em;font-weight:600;letter-spacing:.04em;width:max-content;max-width:100%}
+.fw-el-image .fw-media{aspect-ratio:auto;height:100%;border-radius:var(--fw-el-radius,16px)}
+.fw-el-icon{display:grid;place-items:center}
+.fw-el-icon-glyph{display:grid;place-items:center;width:100%;height:100%}
+.fw-el-icon-glyph svg{width:min(100%,calc(var(--fw-rs,1) * var(--fw-rh,40px)));height:auto;aspect-ratio:1}
+.fw-el-divider{height:1px;align-self:center}
+.fw-shape-line{height:2px}
+.fw-shape-circle,.fw-shape-ring{width:min(100%,calc(var(--fw-rs,1) * var(--fw-rh,40px)));aspect-ratio:1;place-self:center}
+.fw-shape-dot{width:6px;height:6px;place-self:center}
+
 /* ── Animations ───────────────────────── */
 @keyframes fw-fade{from{opacity:0}to{opacity:1}}
 @keyframes fw-slide-up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
@@ -384,6 +410,11 @@ textarea.fw-input{min-height:130px;resize:vertical}
   .fw-bento .fw-card:nth-child(1){grid-row:span 1}
 }
 @container site (max-width: 768px){
+  .fw-canvas{grid-template-columns:1fr;grid-template-rows:none!important;row-gap:16px}
+  .fw-el{grid-column:1!important;grid-row:auto!important;order:var(--fw-mo)}
+  .fw-el-mhide{display:none}
+  .fw-el-image,.fw-el-shape{min-height:calc(var(--fw-rs,4) * var(--fw-rh,40px) * .7)}
+  .fw-el-button,.fw-el-badge{justify-self:start}
   .fw-cols-2,.fw-cols-3,.fw-split,.fw-feature-list,.fw-bento{grid-template-columns:1fr}
   .fw-bento .fw-card{grid-column:auto!important}
   .fw-split.fw-reverse>:first-child{order:0}

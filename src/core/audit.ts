@@ -2,6 +2,7 @@ import type { Page, Project, Section } from './types';
 import { SECTION_MAP, list, str, bool } from './sections';
 import { contrastRatio, ensureContrast, readableOn } from './color';
 import { assetIdOf, isAssetRef } from './assets';
+import { canvasElements } from './canvas';
 
 // ════════════════════════════════════════════════════════════════
 //  Project quality audit: accessibility, SEO, content, links, media.
@@ -91,10 +92,10 @@ function auditPage(p: Project, pg: Page, out: Issue[]) {
     out.push({ id: `seo-desc-long-${pg.id}`, severity: 'warning', category: 'SEO', message: `A meta description de “${pg.name}” passa de 160 caracteres`, ...at });
   }
 
-  // Heading structure: the hero renders the page's only <h1>.
-  const heroes = visible.filter((s) => s.type === 'hero');
-  if (!heroes.length && visible.length) out.push({ id: `h1-none-${pg.id}`, severity: 'warning', category: 'Acessibilidade', message: `“${pg.name}” não tem um título principal (h1)`, hint: 'Adicione uma seção Hero: ela define o h1 da página.', ...at });
-  if (heroes.length > 1) out.push({ id: `h1-many-${pg.id}`, severity: 'warning', category: 'Acessibilidade', message: `“${pg.name}” tem ${heroes.length} seções Hero, ou seja, ${heroes.length} títulos h1`, hint: 'Use um único Hero por página; para os demais blocos, prefira “Chamada final” ou “Texto + mídia”.', pageId: pg.id, sectionId: heroes[1].id });
+  // Heading structure: a Hero, or a free-form heading marked as main title, renders the page's <h1>.
+  const h1s = visible.flatMap((s) => (s.type === 'hero' ? [s] : s.type === 'canvas' ? canvasElements(s.props).filter((e) => e.kind === 'heading' && e.level === 1).map(() => s) : []));
+  if (!h1s.length && visible.length) out.push({ id: `h1-none-${pg.id}`, severity: 'warning', category: 'Acessibilidade', message: `“${pg.name}” não tem um título principal (h1)`, hint: 'Adicione uma seção Hero ou marque um título da Seção livre como principal (H1).', ...at });
+  if (h1s.length > 1) out.push({ id: `h1-many-${pg.id}`, severity: 'warning', category: 'Acessibilidade', message: `“${pg.name}” tem ${h1s.length} títulos principais (h1)`, hint: 'Mantenha um único h1 por página; os demais títulos devem ser h2 ou h3.', pageId: pg.id, sectionId: h1s[1].id });
 
   if (visible.length && !visible.some((s) => s.type === 'navbar')) out.push({ id: `nav-${pg.id}`, severity: 'info', category: 'Conteúdo', message: `“${pg.name}” não tem barra de navegação`, ...at });
   if (visible.length && !visible.some((s) => s.type === 'footer')) out.push({ id: `footer-${pg.id}`, severity: 'info', category: 'Conteúdo', message: `“${pg.name}” não tem rodapé`, ...at });
@@ -150,6 +151,16 @@ function auditSection(p: Project, pg: Page, s: Section, slugs: Set<string>, out:
   }
   if (s.type === 'gallery') list(pr.images).forEach((im, i) => images.push({ src: str(im.src), alt: str(im.caption), label: `imagem ${i + 1}` }));
   if (s.type === 'team') list(pr.members).forEach((m) => images.push({ src: str(m.photo), alt: str(m.name), label: `foto de ${str(m.name) || 'membro'}` }));
+  if (s.type === 'canvas') {
+    const els = canvasElements(pr);
+    els.filter((e) => e.kind === 'image').forEach((e, i) => images.push({ src: e.src ?? '', alt: e.alt ?? '', label: `imagem ${i + 1}` }));
+    const buttons = els.filter((e) => e.kind === 'button' && (e.text ?? '').trim());
+    const noDest = buttons.filter((e) => !(e.href ?? '').trim() || e.href === '#').length;
+    if (noDest) out.push({ id: `links-${s.id}`, severity: 'info', category: 'Links', message: `“${name}” tem ${noDest} botão(ões) sem destino definido (#)`, hint: 'O Claude Code vai precisar saber para onde cada botão leva.', ...at });
+    for (const b of buttons) if ((b.href ?? '').startsWith('/') && !slugs.has(b.href!)) out.push({ id: `broken-${s.id}-${b.id}`, severity: 'error', category: 'Links', message: `“${name}” aponta para “${b.href}”, que não existe no projeto`, ...at });
+    const empty = els.filter((e) => (e.kind === 'heading' || e.kind === 'text' || e.kind === 'button') && !(e.text ?? '').trim()).length;
+    if (empty) out.push({ id: `empty-el-${s.id}`, severity: 'warning', category: 'Conteúdo', message: `“${name}” tem ${empty} elemento(s) de texto vazio(s)`, ...at });
+  }
   if (s.style.background === 'image') images.push({ src: s.style.backgroundImage ?? '', alt: 'decorativa', label: 'imagem de fundo' });
 
   const placeholders = images.filter((im) => !im.src).length;

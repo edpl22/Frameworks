@@ -8,6 +8,7 @@ import { Canvas, SiteStyles } from './Canvas';
 import { RightPanel } from './Inspector';
 import { PromptModal, ExportModal, TemplatesModal, ShortcutsModal, Toasts } from './modals';
 import { CommandPalette } from './CommandPalette';
+import { CanvasWorkspace } from '../canvas/CanvasWorkspace';
 import { collectAssetIds, useAssetUrls } from '../core/assets';
 import { FigmaImportModal } from './FigmaImport';
 import { openProjectFile, saveProject } from './fileOps';
@@ -40,6 +41,7 @@ function useShortcuts() {
       if (meta && (key === '=' || key === '+')) { e.preventDefault(); s.set({ zoom: Math.min(2, s.zoom + 0.1) }); return; }
       if (meta && key === '-') { e.preventDefault(); s.set({ zoom: Math.max(0.25, s.zoom - 0.1) }); return; }
       if (meta && key === '0') { e.preventDefault(); s.set({ zoom: 1 }); return; }
+      if (s.mode === 'canvas') return; // the Canvas editor has its own element shortcuts
 
       const sel = s.selectedId;
       if (sel) {
@@ -149,22 +151,26 @@ function useAssetLoader() {
 }
 
 export function Studio() {
-  const { modal, palette, preview } = useStore();
+  const { modal, palette, preview, mode } = useStore();
   useAssetLoader();
   useShortcuts();
   useDesktopBridge();
   useFonts();
 
   return (
-    <div className={'studio' + (preview ? ' is-preview' : '')}>
+    <div className={'studio' + (preview && mode === 'studio' ? ' is-preview' : '') + (mode === 'canvas' ? ' is-canvas' : '')}>
       <SiteStyles />
       <TopBar />
-      <div className="studio-body">
-        <Rail />
-        <LeftPanel />
-        <Canvas />
-        <RightPanel />
-      </div>
+      {mode === 'canvas' ? (
+        <CanvasWorkspace />
+      ) : (
+        <div className="studio-body">
+          <Rail />
+          <LeftPanel />
+          <Canvas />
+          <RightPanel />
+        </div>
+      )}
       {modal === 'prompt' && <PromptModal />}
       {modal === 'export' && <ExportModal />}
       {modal === 'templates' && <TemplatesModal />}

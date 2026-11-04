@@ -31,13 +31,20 @@ export const FONT_PAIRS: FontPair[] = [
   { id: 'lora', label: 'Lora / Nunito Sans', heading: 'Lora', body: 'Nunito Sans', vibe: 'Saúde, causa social' },
   { id: 'youngserif', label: 'Young Serif / Instrument Sans', heading: 'Young Serif', body: 'Instrument Sans', vibe: 'Gastronomia, artesanal' },
   { id: 'gloock', label: 'Gloock / Inter', heading: 'Gloock', body: 'Inter', vibe: 'Imobiliário, alto padrão' },
+  { id: 'orbitron', label: 'Orbitron / Rajdhani', heading: 'Orbitron', body: 'Rajdhani', vibe: 'Cyberpunk, futurista' },
+  { id: 'exo', label: 'Exo 2 / Inter', heading: 'Exo 2', body: 'Inter', vibe: 'Sci-fi, espacial' },
+  { id: 'cinzel', label: 'Cinzel / EB Garamond', heading: 'Cinzel', body: 'EB Garamond', vibe: 'Fantasia, épico' },
+  { id: 'techmono', label: 'Share Tech Mono / Inter', heading: 'Share Tech Mono', body: 'Inter', vibe: 'Computação, terminal' },
+  { id: 'fredoka', label: 'Fredoka / Nunito', heading: 'Fredoka', body: 'Nunito', vibe: 'Educação, infantil' },
+  { id: 'pixel', label: 'Press Start 2P / Inter', heading: 'Press Start 2P', body: 'Inter', vibe: 'Games retrô, 8-bit' },
+  { id: 'righteous', label: 'Righteous / Inter', heading: 'Righteous', body: 'Inter', vibe: 'Música, festival' },
 ];
 
 export const ALL_FONTS = Array.from(new Set(FONT_PAIRS.flatMap((p) => [p.heading, p.body]))).sort();
 
 // Families that ship a single weight. Requesting a weight axis for them makes
 // Google Fonts reject the whole stylesheet, so they are requested bare.
-const SINGLE_WEIGHT = new Set(['Archivo Black', 'Bebas Neue', 'Gloock', 'Young Serif']);
+const SINGLE_WEIGHT = new Set(['Archivo Black', 'Bebas Neue', 'Gloock', 'Young Serif', 'Press Start 2P', 'Share Tech Mono', 'Righteous']);
 const ITALIC_ONLY = new Set(['Instrument Serif', 'DM Serif Display']);
 
 export function googleFontFamily(f: string): string {
@@ -218,6 +225,70 @@ export const THEME_PRESETS: ThemePreset[] = [
     theme: {
       ...base, mode: 'light', fontHeading: 'Outfit', fontBody: 'Outfit', radius: 16, shadow: 'medium', buttonStyle: 'pill',
       palette: { primary: '#4f46e5', secondary: '#f59e0b', accent: '#ec4899', background: '#ffffff', surface: '#f5f5ff', text: '#13123a', muted: '#5d5c80', border: '#e4e4f5' },
+    },
+  },
+  {
+    id: 'cyberpunk',
+    label: 'Cyberpunk',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Orbitron', fontBody: 'Rajdhani', radius: 4, shadow: 'dramatic', buttonStyle: 'solid', baseSize: 18,
+      palette: { primary: '#ff2a6d', secondary: '#05d9e8', accent: '#f9f871', background: '#07010f', surface: '#120822', text: '#f6f1ff', muted: '#a99cc4', border: '#2a1745' },
+    },
+  },
+  {
+    id: 'scifi',
+    label: 'Sci-fi',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Exo 2', fontBody: 'Inter', radius: 14, shadow: 'dramatic', buttonStyle: 'glass',
+      palette: { primary: '#38bdf8', secondary: '#a78bfa', accent: '#f472b6', background: '#030712', surface: '#0b1324', text: '#eaf2ff', muted: '#8ea3c4', border: '#1b2a44' },
+    },
+  },
+  {
+    id: 'fantasy',
+    label: 'Fantasia',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Cinzel', fontBody: 'EB Garamond', radius: 6, shadow: 'medium', buttonStyle: 'solid', baseSize: 19, density: 'spacious',
+      palette: { primary: '#d4a24c', secondary: '#8b1e3f', accent: '#6fa38b', background: '#120d08', surface: '#1d1610', text: '#f3e7cf', muted: '#bfa982', border: '#3a2c1c' },
+    },
+  },
+  {
+    id: 'terminal',
+    label: 'Terminal',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Share Tech Mono', fontBody: 'Inter', radius: 6, shadow: 'none', buttonStyle: 'solid',
+      palette: { primary: '#22c55e', secondary: '#38bdf8', accent: '#eab308', background: '#050806', surface: '#0c130f', text: '#d9fbe5', muted: '#7fa58c', border: '#18261d' },
+    },
+  },
+  {
+    id: 'school',
+    label: 'Escola',
+    theme: {
+      ...base, mode: 'light', fontHeading: 'Fredoka', fontBody: 'Nunito', radius: 22, shadow: 'soft', buttonStyle: 'pill', baseSize: 18,
+      palette: { primary: '#2563eb', secondary: '#f59e0b', accent: '#ef4444', background: '#fffdf7', surface: '#fff3d6', text: '#1e1b4b', muted: '#57537a', border: '#f1e4c4' },
+    },
+  },
+  {
+    id: 'retro',
+    label: 'Retrô 8-bit',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Press Start 2P', fontBody: 'Inter', radius: 0, shadow: 'medium', buttonStyle: 'solid', scale: 1.2,
+      palette: { primary: '#ff00a0', secondary: '#00e5ff', accent: '#ffe600', background: '#12002b', surface: '#1f0a45', text: '#fff7ff', muted: '#b8a6d9', border: '#34176b' },
+    },
+  },
+  {
+    id: 'music',
+    label: 'Música',
+    theme: {
+      ...base, mode: 'dark', fontHeading: 'Righteous', fontBody: 'Inter', radius: 16, shadow: 'dramatic', buttonStyle: 'pill',
+      palette: { primary: '#ff5f1f', secondary: '#8b5cf6', accent: '#22d3ee', background: '#0b0a10', surface: '#16141f', text: '#f5f3ff', muted: '#a3a0b8', border: '#262337' },
+    },
+  },
+  {
+    id: 'nature',
+    label: 'Natureza',
+    theme: {
+      ...base, mode: 'light', fontHeading: 'Fraunces', fontBody: 'Nunito', radius: 24, shadow: 'soft', buttonStyle: 'pill', density: 'spacious',
+      palette: { primary: '#2f6d3a', secondary: '#a3b18a', accent: '#e9a23b', background: '#f6f7f0', surface: '#e9edd9', text: '#1d2a1b', muted: '#5b6b55', border: '#d9dfc6' },
     },
   },
 ];

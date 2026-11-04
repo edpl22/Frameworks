@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Grid3x3, Download, Sparkles, Command, Minus, Plus, LayoutTemplate, FolderOpen, Save } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, EyeOff, Grid3x3, Download, Sparkles, Command, Minus, Plus, LayoutTemplate, FolderOpen, Save, SlidersHorizontal, MousePointer2 } from 'lucide-react';
 import { useStore } from '../core/store';
 import type { Device } from '../core/types';
 import { Segmented, mod } from './ui';
@@ -25,6 +25,10 @@ export function TopBar() {
         <span className="tb-hide-md">Frameworks</span>
       </a>
       <div className="tb-sep" />
+      <div className="mode-switch" role="tablist" aria-label="Modo do editor">
+        <button role="tab" aria-selected={s.mode === 'studio'} className={s.mode === 'studio' ? 'on' : ''} onClick={() => s.setMode('studio')} title="Studio: seções estruturadas, controle completo"><SlidersHorizontal size={13} /> Studio</button>
+        <button role="tab" aria-selected={s.mode === 'canvas'} className={s.mode === 'canvas' ? 'on' : ''} onClick={() => s.setMode('canvas')} title="Canvas: arraste e solte livremente, estilo Canva"><MousePointer2 size={13} /> Canvas</button>
+      </div>
       <input className="project-name" value={s.project.brief.projectName} onChange={(e) => s.setBrief({ projectName: e.target.value })} aria-label="Nome do projeto" />
       {s.dirty && isDesktop() && <span className="dirty-dot" title="Alterações não salvas" />}
       <button className="btn btn-ghost btn-icon btn-sm tip" data-tip="Templates" onClick={() => s.set({ modal: 'templates' })} aria-label="Templates"><LayoutTemplate size={15} /></button>
@@ -46,8 +50,8 @@ export function TopBar() {
           <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setZoom(s.zoom + 0.1)} aria-label="Aumentar zoom"><Plus size={13} /></button>
         </div>
         <div className="tb-sep" />
-        <button className={'btn btn-ghost btn-icon btn-sm' + (s.showGrid ? ' active' : '')} title="Grade de 12 colunas (G)" onClick={() => s.set({ showGrid: !s.showGrid })} aria-label="Grade"><Grid3x3 size={15} /></button>
-        <button className={'btn btn-ghost btn-icon btn-sm' + (s.preview ? ' active' : '')} title={`Preview (${mod}+P)`} onClick={() => s.set({ preview: !s.preview, selectedId: null })} aria-label="Preview">{s.preview ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+        {s.mode === 'studio' && <button className={'btn btn-ghost btn-icon btn-sm' + (s.showGrid ? ' active' : '')} title="Grade de 12 colunas (G)" onClick={() => s.set({ showGrid: !s.showGrid })} aria-label="Grade"><Grid3x3 size={15} /></button>}
+        {s.mode === 'studio' && <button className={'btn btn-ghost btn-icon btn-sm' + (s.preview ? ' active' : '')} title={`Preview (${mod}+P)`} onClick={() => s.set({ preview: !s.preview, selectedId: null })} aria-label="Preview">{s.preview ? <EyeOff size={15} /> : <Eye size={15} />}</button>}
       </div>
 
       <div className="spacer" />

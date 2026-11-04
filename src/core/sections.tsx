@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import {
   PanelTop, Sparkles, Building2, LayoutGrid, BarChart3, Columns2, Images, Quote, CreditCard, Users,
-  HelpCircle, Megaphone, Mail, Send, PanelBottom, Check, Menu, Puzzle, type LucideIcon,
+  HelpCircle, Megaphone, Mail, Send, PanelBottom, Check, Menu, Puzzle, Frame, type LucideIcon,
 } from 'lucide-react';
 import type { Field, Props, PropValue, Section, SectionStyle, SectionType } from './types';
 import { Editable, Img, Media, useRender } from './render/editable';
 import { SiteIcon } from './icons';
+import { CanvasGrid, newElement } from './canvas';
 
 // ─── helpers ────────────────────────────────────────────────────
 export const str = (v: PropValue | undefined): string => (v === undefined || v === null ? '' : String(v));
@@ -734,6 +735,32 @@ export const SECTIONS: SectionDef[] = [
         </>
       );
     },
+  },
+  {
+    type: 'canvas',
+    label: 'Seção livre',
+    description: 'Monte do seu jeito numa grade de 12 colunas',
+    category: 'Conteúdo',
+    icon: Frame,
+    intent: 'Free-form section designed on a 12-column grid. Reproduce the element placement with CSS grid (12 columns, fixed row height) on desktop and tablet; on phones stack the elements in the listed reading order and hide the ones marked decorative.',
+    variants: [{ id: 'grid', label: 'Grade livre' }],
+    defaultStyle: { paddingY: 'lg', align: 'left', animation: 'fade' },
+    fields: [
+      { key: 'rows', label: 'Altura mínima (linhas)', kind: 'number', min: 2, max: 40 },
+      { key: 'rowHeight', label: 'Altura de cada linha (px)', kind: 'number', min: 16, max: 96, step: 4 },
+    ],
+    defaults: () => ({
+      rows: 8,
+      rowHeight: 40,
+      elements: [
+        newElement('badge', { col: 1, row: 1, span: 2, text: 'Seção livre' }),
+        newElement('heading', { col: 1, row: 2, span: 7, rows: 3, text: 'Arraste, redimensione e *crie*', size: 'xl' }),
+        newElement('text', { col: 1, row: 5, span: 6, rows: 2, text: 'Abra o modo Canvas para mover cada elemento pela grade. No celular eles se empilham nesta ordem.' }),
+        newElement('button', { col: 1, row: 7, span: 3, text: 'Começar' }),
+        newElement('shape', { col: 9, row: 1, span: 4, rows: 8, shape: 'blob', fill: 'gradient', opacity: 0.85, mobileHidden: true }),
+      ] as unknown as PropValue,
+    }),
+    render: ({ s, p }) => <CanvasGrid s={s} p={p} />,
   },
   {
     type: 'footer',

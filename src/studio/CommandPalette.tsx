@@ -42,6 +42,8 @@ export function CommandPalette() {
     return [
       { id: 'prompt', group: 'Ações', label: 'Gerar prompt para Claude Code', icon: <Sparkles size={14} />, shortcut: `${mod} ↵`, run: () => s.set({ modal: 'prompt' }) },
       { id: 'export', group: 'Ações', label: 'Exportar…', icon: <Download size={14} />, shortcut: `${mod} E`, run: () => s.set({ modal: 'export' }) },
+      { id: 'mode-canvas', group: 'Ações', label: 'Abrir modo Canvas (arrastar e soltar)', icon: <MousePointer2 size={14} />, keywords: 'canva livre grade arrastar', run: () => s.setMode('canvas') },
+      { id: 'mode-studio', group: 'Ações', label: 'Abrir modo Studio', icon: <LayoutTemplate size={14} />, keywords: 'studio secoes', run: () => s.setMode('studio') },
       { id: 'figma', group: 'Ações', label: 'Importar tokens do Figma', icon: <Palette size={14} />, keywords: 'figma variables tokens studio dtcg design tokens importar', run: () => s.set({ modal: 'figma' }) },
       { id: 'templates', group: 'Ações', label: 'Abrir templates', icon: <LayoutTemplate size={14} />, run: () => s.set({ modal: 'templates' }) },
       { id: 'save', group: 'Ações', label: 'Salvar projeto', icon: <Save size={14} />, shortcut: `${mod} S`, run: () => saveProject() },

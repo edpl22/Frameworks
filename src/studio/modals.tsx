@@ -151,7 +151,7 @@ export function ExportModal() {
 
 // Template thumbnails are expensive to render, so they are cached for the session.
 let previewCache: { t: (typeof TEMPLATES)[number]; html: string; css: string; swatches: string[]; font: string; pages: number; sections: number }[] | null = null;
-function templatePreviews() {
+export function templatePreviews() {
   if (!previewCache) {
     previewCache = TEMPLATES.map((t) => {
       const p = projectFromTemplate(t);

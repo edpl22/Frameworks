@@ -13,6 +13,15 @@ export interface RenderCtx {
   uploadImage?: (file: File) => Promise<string | null>;
   /** Exports only: maps `asset:` refs to file paths or data URLs. */
   resolveAsset?: (src: string) => string | undefined;
+  /**
+   * Canvas mode: a click selects/drags elements, a double-click edits text.
+   * `editingPath` is the text currently being edited (or null).
+   */
+  canvasEditing?: {
+    selected: string[];
+    editingPath: string | null;
+    startEdit: (path: string | null) => void;
+  };
 }
 
 export const RenderContext = createContext<RenderCtx>({ editable: false });
@@ -38,16 +47,35 @@ interface EditableProps {
 }
 
 export function Editable({ path, value, as: Tag = 'span', className, multiline, placeholder }: EditableProps) {
-  const { editable, onEdit } = useRender();
+  const { editable, onEdit, canvasEditing } = useRender();
   const ref = useRef<HTMLElement>(null);
   const focused = useRef(false);
+  // In canvas mode only the text being edited (double-click) is contentEditable.
+  const live = editable && (!canvasEditing || canvasEditing.editingPath === path);
 
   useEffect(() => {
     if (ref.current && !focused.current) ref.current.innerHTML = formatInline(value || '');
-  }, [value, editable]);
+  }, [value, live]);
 
-  if (!editable) {
-    return <Tag className={className} dangerouslySetInnerHTML={{ __html: formatInline(value || '') }} />;
+  useEffect(() => {
+    if (!live || !canvasEditing || !ref.current) return;
+    const el = ref.current;
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  }, [live, canvasEditing]);
+
+  if (!live) {
+    return (
+      <Tag
+        className={className}
+        dangerouslySetInnerHTML={{ __html: formatInline(value || '') }}
+        onDoubleClick={editable && canvasEditing ? (e: React.MouseEvent) => { e.stopPropagation(); canvasEditing.startEdit(path); } : undefined}
+      />
+    );
   }
 
   return (
@@ -67,6 +95,7 @@ export function Editable({ path, value, as: Tag = 'span', className, multiline, 
         const next = e.currentTarget.innerText.replace(/ /g, ' ').replace(/\n+$/, '');
         if (next !== value) onEdit?.(path, next);
         e.currentTarget.innerHTML = formatInline(next);
+        canvasEditing?.startEdit(null);
       }}
       onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
         // Enter commits; Shift+Enter inserts a line break where multiline is allowed.
