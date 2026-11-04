@@ -88,14 +88,14 @@ export function Landing() {
       <div className="lp-noise" />
       <header className={'lp-nav' + (scrolled ? ' scrolled' : '')}>
         <div className="lp-container lp-nav-inner">
-          <a href="#/" className="lp-brand"><span className="logo"><Logo size={18} /></span>Frameworks<span className="lp-brand-tag">Studio</span></a>
+          <a href="#" className="lp-brand"><span className="logo"><Logo size={18} /></span>Frameworks<span className="lp-brand-tag">Studio</span></a>
           <nav className="lp-links">
             <a href="#recursos" onClick={(e) => { e.preventDefault(); document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' }); }}>Recursos</a>
             <a href="#como" onClick={(e) => { e.preventDefault(); document.getElementById('como')?.scrollIntoView({ behavior: 'smooth' }); }}>Como funciona</a>
             <a href="#prompt" onClick={(e) => { e.preventDefault(); document.getElementById('prompt')?.scrollIntoView({ behavior: 'smooth' }); }}>Prompt</a>
             <a href="#plataformas" onClick={(e) => { e.preventDefault(); document.getElementById('plataformas')?.scrollIntoView({ behavior: 'smooth' }); }}>Desktop & Docker</a>
           </nav>
-          <a href="#/studio" className="lp-btn lp-btn-primary lp-btn-sm">Abrir Studio <ArrowRight size={14} /></a>
+          <a href="#studio" className="lp-btn lp-btn-primary lp-btn-sm">Abrir Studio <ArrowRight size={14} /></a>
         </div>
       </header>
 
@@ -104,7 +104,7 @@ export function Landing() {
         <div className="lp-aurora" aria-hidden="true"><i /><i /><i /></div>
         <div className="lp-gridlines" aria-hidden="true" />
         <div className="lp-container" style={{ position: 'relative' }}>
-          <a href="#/studio" className="lp-pill" data-reveal>
+          <a href="#studio" className="lp-pill" data-reveal>
             <span className="lp-pill-tag"><Sparkles size={11} /> Novo</span>
             Do design ao código com Claude Code
             <ArrowRight size={13} />
@@ -118,7 +118,7 @@ export function Landing() {
             Projete, refine e exporte — o Claude Code constrói o resto, com qualidade de produção.
           </p>
           <div className="lp-cta" data-reveal>
-            <a href="#/studio" className="lp-btn lp-btn-primary lp-btn-lg">Começar a criar — grátis <ArrowRight size={16} /></a>
+            <a href="#studio" className="lp-btn lp-btn-primary lp-btn-lg">Começar a criar — grátis <ArrowRight size={16} /></a>
             <a href="#prompt" className="lp-btn lp-btn-ghost lp-btn-lg" onClick={(e) => { e.preventDefault(); document.getElementById('prompt')?.scrollIntoView({ behavior: 'smooth' }); }}><Terminal size={16} /> Ver um prompt gerado</a>
           </div>
           <div className="lp-meta" data-reveal>
@@ -233,7 +233,7 @@ export function Landing() {
                 <li key={x}><Check size={16} />{x}</li>
               ))}
             </ul>
-            <a href="#/studio" className="lp-btn lp-btn-primary" style={{ marginTop: 28 }}>Gerar meu prompt <ArrowRight size={15} /></a>
+            <a href="#studio" className="lp-btn lp-btn-primary" style={{ marginTop: 28 }}>Gerar meu prompt <ArrowRight size={15} /></a>
           </div>
           <div className="lp-terminal" data-reveal>
             <div className="lp-term-bar"><i /><i /><i /><span>CLAUDE_PROMPT.md</span></div>
@@ -287,7 +287,7 @@ export function Landing() {
             <h2 className="lp-h2" style={{ position: 'relative' }}>Seu próximo site começa<br /><span className="lp-serif">agora.</span></h2>
             <p className="lp-sub" style={{ position: 'relative' }}>Abra o Studio, escolha um template e gere seu primeiro prompt em menos de cinco minutos.</p>
             <div className="lp-cta" style={{ justifyContent: 'center', position: 'relative' }}>
-              <a href="#/studio" className="lp-btn lp-btn-primary lp-btn-lg">Abrir Frameworks Studio <ArrowRight size={16} /></a>
+              <a href="#studio" className="lp-btn lp-btn-primary lp-btn-lg">Abrir Frameworks Studio <ArrowRight size={16} /></a>
             </div>
           </div>
         </div>
@@ -295,9 +295,9 @@ export function Landing() {
 
       <footer className="lp-footer">
         <div className="lp-container lp-footer-inner">
-          <a href="#/" className="lp-brand"><span className="logo"><Logo size={16} /></span>Frameworks</a>
+          <a href="#" className="lp-brand"><span className="logo"><Logo size={16} /></span>Frameworks</a>
           <span>© {new Date().getFullYear()} Frameworks Studio. Feito para quem constrói.</span>
-          <span className="lp-footer-links"><a href="#/studio">Studio</a><a href="https://docs.claude.com/en/docs/claude-code/overview" target="_blank" rel="noreferrer">Claude Code</a><a href="#/" aria-label="GitHub"><Github size={16} /></a></span>
+          <span className="lp-footer-links"><a href="#studio">Studio</a><a href="https://docs.claude.com/en/docs/claude-code/overview" target="_blank" rel="noreferrer">Claude Code</a><a href="https://github.com/edpl22/Frameworks" target="_blank" rel="noreferrer" aria-label="GitHub"><Github size={16} /></a></span>
         </div>
       </footer>
     </div>

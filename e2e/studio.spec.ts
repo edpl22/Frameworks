@@ -9,6 +9,10 @@ test.describe('landing', () => {
     await expect(page.locator('.lp-shot-site .fw-site')).toBeVisible({ timeout: 15_000 });
     await page.getByRole('link', { name: /Abrir Studio/ }).first().click();
     await expect(page.locator('.studio')).toBeVisible();
+    expect(new URL(page.url()).hash).toBe('#studio');
+    // the legacy route still works
+    await page.goto('/#/studio');
+    await expect(page.locator('.studio')).toBeVisible();
   });
 });
 

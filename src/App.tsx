@@ -6,7 +6,9 @@ import { isDesktop } from './core/platform';
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })));
 
 function useHashRoute() {
-  const get = () => window.location.hash.replace(/^#/, '') || '/';
+  // Plain `#studio` works everywhere (Claude Artifacts only pass simple hash
+  // names); the older `#/studio` form is still accepted.
+  const get = () => window.location.hash.replace(/^#\/?/, '');
   const [route, setRoute] = useState(get);
   useEffect(() => {
     const on = () => { setRoute(get()); window.scrollTo(0, 0); };
@@ -18,7 +20,7 @@ function useHashRoute() {
 
 export function App() {
   const route = useHashRoute();
-  const showStudio = route.startsWith('/studio') || isDesktop();
+  const showStudio = route.startsWith('studio') || isDesktop();
 
   useEffect(() => {
     document.body.style.overflow = showStudio ? 'hidden' : '';

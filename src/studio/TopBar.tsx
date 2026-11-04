@@ -20,7 +20,7 @@ export function TopBar() {
 
   return (
     <header className="topbar">
-      <a className="brand-mark" href="#/" title="Página inicial" style={isDesktop() ? { pointerEvents: 'none', paddingLeft: navigator.platform.includes('Mac') ? 64 : 0 } : undefined}>
+      <a className="brand-mark" href="#" title="Página inicial" style={isDesktop() ? { pointerEvents: 'none', paddingLeft: navigator.platform.includes('Mac') ? 64 : 0 } : undefined}>
         <span className="logo"><Logo /></span>
         <span className="tb-hide-md">Frameworks</span>
       </a>
